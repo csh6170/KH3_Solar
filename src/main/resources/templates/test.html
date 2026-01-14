@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모달 테스트 페이지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-200 min-h-screen flex flex-col items-center justify-center">
+
+<h1 class="text-2xl font-bold mb-8 text-gray-800">예측 서비스 테스트</h1>
+
+<button onclick="openModal()"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-3">
+    <i class="fas fa-solar-panel"></i>
+    <span>태양광 발전 예측하기</span>
+</button>
+
+<div id="predictModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center">
+        <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="closeModal()"></div>
+
+        <div class="relative bg-white rounded-3xl overflow-hidden shadow-2xl transform transition-all max-w-lg w-full z-50">
+
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-[60]">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+
+            <iframe src="/predict-form"
+                    class="w-full h-[900px] border-none"
+                    id="predictFrame">
+            </iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('predictModal');
+    const iframe = document.getElementById('predictFrame');
+
+    function openModal() {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // iframe 내부의 resetAll 함수 호출 (새로고침 없이 값만 초기화)
+        if (iframe && iframe.contentWindow.resetAll) {
+            iframe.contentWindow.resetAll();
+        }
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+
+        // 닫을 때도 미리 비워두면 다음에 열 때 더 깔끔합니다.
+        if (iframe && iframe.contentWindow.resetAll) {
+            iframe.contentWindow.resetAll();
+        }
+    }
+
+    window.onkeydown = function(event) {
+        if (event.key === "Escape" && !modal.classList.contains('hidden')) {
+            closeModal();
+        }
+    };
+</script>
+
+</body>
+</html>
