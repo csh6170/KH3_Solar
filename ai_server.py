@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     print("🛑🛑🛑🛑🛑 프로그램 종료: AI Server Application Shutdown.") # 앱 종료 시 실행
 
 # FastAPI 앱 생성
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)  # ✅ lifespan 연결 완료
 
 # ================= 1. 옷차림 추천 모델 (분류 - Classification) =================
 # 학습 데이터 준비 (실제로는 CSV 파일 등에서 로드하지만, 학습용으로 직접 생성)
