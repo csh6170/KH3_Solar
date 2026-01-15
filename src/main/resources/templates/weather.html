@@ -94,6 +94,8 @@
     </div>
 
     <!-- 2. 메인 날씨 카드 (글래스모피즘 적용) -->
+    <a href="https://www.kma.go.kr/w/iframe/dfs.do" target="_blank" class="block hover-card">
+
     <div class="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-gray-800 shadow-2xl mb-6 flex flex-col md:flex-row items-center justify-between border border-white/50">
         <div class="text-center md:text-left">
             <h2 class="text-2xl font-bold mb-2 text-gray-700 flex items-center justify-center md:justify-start gap-2">
@@ -120,7 +122,7 @@
         </div>
 
         <!-- 날씨 아이콘 -->
-        <div class="mt-8 md:mt-0 transform hover:scale-110 transition duration-300">
+        <div class="mt-8 md:mt-0 transform">
             <i th:if="${weather.PTY == '비'}" class="fas fa-cloud-showers-heavy text-9xl text-blue-500 animate-bounce drop-shadow-xl"></i>
             <i th:if="${weather.PTY == '눈'}" class="fas fa-snowflake text-9xl text-sky-300 animate-spin-slow drop-shadow-xl"></i>
             <i th:if="${weather.PTY == '비/눈'}" class="fas fa-cloud-meatball text-9xl text-gray-400 animate-pulse drop-shadow-xl"></i>
@@ -131,6 +133,7 @@
             <i th:if="${weather.PTY == '강수없음' && weather.SKY == '흐림'}" class="fas fa-cloud text-9xl text-gray-500 drop-shadow-xl"></i>
         </div>
     </div>
+    </a>
 
     <!-- 3. [통합] AI 라이프스타일 매니저 (접기/펼치기 기능 추가) -->
     <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden mb-8 transition-all duration-300">
@@ -149,7 +152,7 @@
                     <i class="fas fa-volume-up"></i> <span class="hidden sm:inline">브리핑 듣기</span>
                 </button>
 
-                <!-- [NEW] 접기/펼치기 토글 버튼 -->
+                <!-- 접기/펼치기 토글 버튼 -->
                 <button class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition backdrop-blur-sm border border-white/10">
                     <i id="aiToggleIcon" class="fas fa-chevron-up transition-transform duration-500"></i>
                 </button>
@@ -271,7 +274,7 @@
     </div>
 
 
-    <!-- 5. [NEW] Sun/Moon Cycle 태양/달의 이동 -->
+    <!-- 5. Sun/Moon Cycle 태양/달의 이동 -->
     <div class="mb-10">
         <h3 class="text-xl font-bold text-white mb-4 px-1 flex items-center drop-shadow-md">
             <i class="fas" th:classappend="${weather.dayTime ? 'fa-sun text-yellow-300' : 'fa-moon text-blue-200'}"></i>
@@ -693,7 +696,7 @@
         <p>AI Analysis Powered by Python & Scikit-learn</p>
     </div>
 
-    <!-- [NEW] 맨 위로 가기 버튼 -->
+    <!-- 맨 위로 가기 버튼 -->
     <button id="backToTopBtn" onclick="scrollToTop()"
             class="fixed bottom-8 right-8 z-50 bg-indigo-600 hover:bg-indigo-700 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center cursor-pointer transition-all duration-300 opacity-0 translate-y-10 pointer-events-none hover:-translate-y-1">
         <i class="fas fa-arrow-up"></i>
@@ -760,7 +763,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-        // [NEW] Sun Cycle Animation Script
+        // 태양 아이콘 위치 업데이트 함수
     function updateSunPosition() {
         // Thymeleaf 변수 주입 (서버에서 계산된 진행률)
         /*[# th:if="${weather.sunProgress != null}"]*/
