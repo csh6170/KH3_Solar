@@ -93,46 +93,44 @@
         </div>
     </div>
 
-    <!-- 2. 메인 날씨 카드 (글래스모피즘 적용) -->
+    <!-- 2. 메인 날씨 카드 -->
     <a href="https://www.kma.go.kr/w/iframe/dfs.do" target="_blank" class="block hover-card">
-
-    <div class="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-gray-800 shadow-2xl mb-6 flex flex-col md:flex-row items-center justify-between border border-white/50">
-        <div class="text-center md:text-left">
-            <h2 class="text-2xl font-bold mb-2 text-gray-700 flex items-center justify-center md:justify-start gap-2">
-                <i class="fas fa-location-dot text-blue-500"></i>
-                <span th:text="${currentRegionName}">지역명</span>
-            </h2>
-            <!-- 현재 온도 -->
-            <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
-                <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
+        <div class="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-gray-800 shadow-2xl mb-6 flex flex-col md:flex-row items-center justify-between border border-white/50">
+            <div class="text-center md:text-left">
+                <h2 class="text-2xl font-bold mb-2 text-gray-700 flex items-center justify-center md:justify-start gap-2">
+                    <i class="fas fa-location-dot text-blue-500"></i>
+                    <span th:text="${currentRegionName}">지역명</span>
+                </h2>
+                <!-- 현재 온도 -->
+                <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
+                    <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
+                </div>
+                <!-- 날씨 상태 및 최저/최고 기온 -->
+                <p class="text-xl font-medium text-gray-600">
+                    <span th:text="${weather.SKY}">-</span>
+                    <span th:if="${weather.PTY != '강수없음'}" th:text="'/ ' + ${weather.PTY}"></span>
+                </p>
+                <div class="mt-6 flex gap-4 text-sm bg-gray-100/80 p-3 rounded-xl inline-flex shadow-inner">
+                    <span class="flex items-center gap-1"><i class="fas fa-temperature-low text-blue-500"></i> 최저 <span th:text="${weather.TMN != null ? weather.TMN : '-'}"></span>°</span>
+                    <span class="w-px h-4 bg-gray-300"></span>
+                    <span class="flex items-center gap-1"><i class="fas fa-temperature-high text-red-500"></i> 최고 <span th:text="${weather.TMX != null ? weather.TMX : '-'}"></span>°</span>
+                    <span class="w-px h-4 bg-gray-300"></span>
+                    <span class="flex items-center gap-1"><i class="fas fa-user-check text-indigo-500"></i> 체감 <span th:text="${weather.sensibleTemp != null ? weather.sensibleTemp : '-'}"></span>°</span>
+                </div>
             </div>
-            <!-- 날씨 상태 및 최저/최고 기온 -->
-            <p class="text-xl font-medium text-gray-600">
-                <span th:text="${weather.SKY}">-</span>
-                <span th:if="${weather.PTY != '강수없음'}" th:text="'/ ' + ${weather.PTY}"></span>
-            </p>
-            <div class="mt-6 flex gap-4 text-sm bg-gray-100/80 p-3 rounded-xl inline-flex shadow-inner">
-                <span class="flex items-center gap-1"><i class="fas fa-temperature-low text-blue-500"></i> 최저 <span th:text="${weather.TMN != null ? weather.TMN : '-'}"></span>°</span>
-                <span class="w-px h-4 bg-gray-300"></span>
-                <span class="flex items-center gap-1"><i class="fas fa-temperature-high text-red-500"></i> 최고 <span th:text="${weather.TMX != null ? weather.TMX : '-'}"></span>°</span>
-                <span class="w-px h-4 bg-gray-300"></span>
-                <span class="flex items-center gap-1"><i class="fas fa-user-check text-indigo-500"></i> 체감 <span th:text="${weather.sensibleTemp != null ? weather.sensibleTemp : '-'}"></span>°</span>
 
+            <!-- 날씨 아이콘 -->
+            <div class="mt-8 md:mt-0 transform">
+                <i th:if="${weather.PTY == '비'}" class="fas fa-cloud-showers-heavy text-9xl text-blue-500 animate-bounce drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '눈'}" class="fas fa-snowflake text-9xl text-sky-300 animate-spin-slow drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '비/눈'}" class="fas fa-cloud-meatball text-9xl text-gray-400 animate-pulse drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '소나기'}" class="fas fa-cloud-showers-water text-9xl text-blue-600 animate-bounce drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '빗방울'}" class="fas fa-cloud-rain text-9xl text-blue-400 animate-pulse drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '강수없음' && weather.SKY == '맑음'}" class="fas fa-sun text-9xl text-yellow-400 animate-pulse drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]"></i>
+                <i th:if="${weather.PTY == '강수없음' && weather.SKY == '구름많음'}" class="fas fa-cloud-sun text-9xl text-gray-400 drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '강수없음' && weather.SKY == '흐림'}" class="fas fa-cloud text-9xl text-gray-500 drop-shadow-xl"></i>
             </div>
         </div>
-
-        <!-- 날씨 아이콘 -->
-        <div class="mt-8 md:mt-0 transform">
-            <i th:if="${weather.PTY == '비'}" class="fas fa-cloud-showers-heavy text-9xl text-blue-500 animate-bounce drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '눈'}" class="fas fa-snowflake text-9xl text-sky-300 animate-spin-slow drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '비/눈'}" class="fas fa-cloud-meatball text-9xl text-gray-400 animate-pulse drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '소나기'}" class="fas fa-cloud-showers-water text-9xl text-blue-600 animate-bounce drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '빗방울'}" class="fas fa-cloud-rain text-9xl text-blue-400 animate-pulse drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '강수없음' && weather.SKY == '맑음'}" class="fas fa-sun text-9xl text-yellow-400 animate-pulse drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]"></i>
-            <i th:if="${weather.PTY == '강수없음' && weather.SKY == '구름많음'}" class="fas fa-cloud-sun text-9xl text-gray-400 drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '강수없음' && weather.SKY == '흐림'}" class="fas fa-cloud text-9xl text-gray-500 drop-shadow-xl"></i>
-        </div>
-    </div>
     </a>
 
     <!-- 3. [통합] AI 라이프스타일 매니저 (접기/펼치기 기능 추가) -->
