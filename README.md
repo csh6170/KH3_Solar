@@ -61,7 +61,7 @@
 | Category | Technology |
 | :--- | :--- |
 | **Language** | Java 25, Python 3.9, JavaScript (ES6) |
-| **Framework** | Spring Boot 3.x, Thymeleaf |
+| **Framework** | Spring Boot 4.0.0, Thymeleaf |
 | **CSS / UI** | Tailwind CSS, Font Awesome 6 |
 | **Libraries** | Tippy.js, SweetAlert2, Chart.js |
 | **AI / Data** | Scikit-learn (Random Forest), Pandas, NumPy |
