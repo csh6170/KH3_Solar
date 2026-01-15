@@ -35,11 +35,18 @@
     <!-- 1. 상단 헤더 & 지역 선택 -->
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-white drop-shadow-md">
-                <i class="fas fa-satellite-dish text-blue-300 mr-2"></i>기상청 예보 대시보드
-            </h1>
-            <p class="text-white/90 text-sm mt-1 drop-shadow-sm font-medium">
-                발표: <span th:text="${weather.baseDate} + ' ' + ${weather.baseTime}"></span>
+            <div class="inline-flex items-center justify-center  gap-2 mb-1">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <i class="fas fa-satellite-dish text-white text-2xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">
+                        기상청 예보 <span class="text-cyan-300">대시보드</span>
+                    </h1>
+                </div>
+            </div>
+            <p class="text-white/90 text-xs font-medium tracking-wide">
+                Live Update: <span class="font-bold text-white" th:text="${weather.baseDate} + ' ' + ${weather.baseTime}"></span>
             </p>
         </div>
 
@@ -49,6 +56,7 @@
             <span>태양광 발전 예측하기</span>
         </button>
 
+        <!-- 태양광 발전 예측 모달 -->
         <div id="predictModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen p-4 text-center">
                 <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="closeModal()"></div>
@@ -67,6 +75,7 @@
             </div>
         </div>
 
+        <!-- 지역 선택 드롭다운 -->
         <div class="relative w-full md:w-64">
             <select onchange="const c=this.value.split(','); location.href='/?nx='+c[0]+'&ny='+c[1]"
                     class="w-full p-3 rounded-xl border-none bg-white/80 backdrop-blur-md font-bold text-gray-700 shadow-lg focus:ring-2 focus:ring-blue-400 outline-none cursor-pointer hover:bg-white/90 transition">
@@ -120,72 +129,82 @@
         </div>
     </div>
 
-    <!-- 3. [통합] AI 라이프스타일 매니저 (브리핑 + 옷차림 추천) -->
-    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden mb-8 border border-white/50">
-        <!-- 상단 헤더 (공통) -->
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between">
+    <!-- 3. [통합] AI 라이프스타일 매니저 (접기/펼치기 기능 추가) -->
+    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden mb-8 border border-white/50 transition-all duration-300">
+        <!-- 상단 헤더 -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between cursor-pointer" onclick="toggleAiManager()">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl shadow-inner">
                     🤖
                 </div>
                 <h3 class="text-lg font-bold text-white tracking-wide">AI 라이프스타일 매니저</h3>
             </div>
-            <button onclick="speakBriefing()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-bold transition active:scale-95 backdrop-blur-sm border border-white/10">
-                <i class="fas fa-volume-up"></i> 브리핑 듣기
-            </button>
+
+            <div class="flex items-center gap-3">
+                <!-- 브리핑 듣기 버튼 (이벤트 버블링 방지를 위해 onclick에 event.stopPropagation() 추가 권장) -->
+                <button onclick="speakBriefing(); event.stopPropagation();" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-bold transition active:scale-95 backdrop-blur-sm border border-white/10">
+                    <i class="fas fa-volume-up"></i> <span class="hidden sm:inline">브리핑 듣기</span>
+                </button>
+
+                <!-- [NEW] 접기/펼치기 토글 버튼 -->
+                <button class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition backdrop-blur-sm border border-white/10">
+                    <i id="aiToggleIcon" class="fas fa-chevron-up transition-transform duration-500"></i>
+                </button>
+            </div>
         </div>
 
-        <!-- 컨텐츠 영역 (좌우 분할) -->
-        <div class="flex flex-col md:flex-row">
-            <!-- 왼쪽: AI 기상 캐스터 브리핑 -->
-            <div class="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-gray-100 bg-indigo-50/30">
-                <div class="flex gap-4 items-start">
-                    <div class="flex-shrink-0 text-center">
-                        <div class="w-16 h-16 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center text-3xl shadow-sm mb-2">
-                            👩‍💼
+        <!-- 컨텐츠 영역 (애니메이션을 위한 래퍼 추가) -->
+        <!-- max-h-[1000px]은 내용물보다 충분히 큰 값이어야 함. 내용물이 보일 때 사용. -->
+        <div id="aiManagerContent" class="transition-all duration-500 ease-in-out max-h-[1000px] opacity-100 overflow-hidden">
+            <div class="flex flex-col md:flex-row">
+                <!-- 왼쪽: AI 기상 캐스터 브리핑 -->
+                <div class="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-gray-100 bg-indigo-50/30">
+                    <div class="flex gap-4 items-start">
+                        <div class="flex-shrink-0 text-center">
+                            <div class="w-16 h-16 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center text-3xl shadow-sm mb-2">
+                                👩‍💼
+                            </div>
+                            <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded-full">Caster</span>
                         </div>
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded-full">Caster</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-microphone-alt"></i> 오늘의 날씨 브리핑
-                        </h4>
-                        <div class="bg-white p-4 rounded-xl rounded-tl-none border border-indigo-100 shadow-sm relative">
-                            <p id="aiBriefingText" class="text-gray-700 leading-relaxed font-medium text-sm md:text-base" th:utext="${weather.aiBriefing}">
-                                캐스터가 대본을 준비중입니다...
-                            </p>
-                            <!-- 말풍선 꼬리 -->
-                            <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-indigo-100 transform -rotate-45"></div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                                <i class="fas fa-microphone-alt"></i> 오늘의 날씨 브리핑
+                            </h4>
+                            <div class="bg-white p-4 rounded-xl rounded-tl-none border border-indigo-100 shadow-sm relative">
+                                <p id="aiBriefingText" class="text-gray-700 leading-relaxed font-medium text-sm md:text-base" th:utext="${weather.aiBriefing}">
+                                    캐스터가 대본을 준비중입니다...
+                                </p>
+                                <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-indigo-100 transform -rotate-45"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 오른쪽: AI 옷차림 추천 -->
-            <div class="flex-1 p-6 md:p-8 bg-purple-50/30">
-                <div class="flex gap-4 items-start">
-                    <div class="flex-shrink-0 text-center">
-                        <div class="w-16 h-16 rounded-full bg-white border-2 border-purple-200 flex items-center justify-center text-3xl shadow-sm mb-2">
-                            👗
-                        </div>
-                        <span class="text-[10px] font-bold text-purple-500 uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded-full">Stylist</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-bold text-purple-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-tshirt"></i> 오늘의 옷차림 추천
-                        </h4>
-                        <div class="bg-white p-4 rounded-xl rounded-tl-none border border-purple-100 shadow-sm relative flex flex-col gap-2">
-                            <div class="flex items-center gap-3 mb-1">
-                                <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
-                                    <i th:class="${weather.outfitIcon}"></i>
-                                </div>
-                                <span class="font-bold text-gray-800">Today's Pick!</span>
+                <!-- 오른쪽: AI 옷차림 추천 -->
+                <div class="flex-1 p-6 md:p-8 bg-purple-50/30">
+                    <div class="flex gap-4 items-start">
+                        <div class="flex-shrink-0 text-center">
+                            <div class="w-16 h-16 rounded-full bg-white border-2 border-purple-200 flex items-center justify-center text-3xl shadow-sm mb-2">
+                                👗
                             </div>
-                            <p class="text-gray-700 leading-relaxed font-medium text-sm md:text-base">
-                                <span th:utext="${weather.clothingRecommendation}"></span>
-                            </p>
-                            <!-- 말풍선 꼬리 -->
-                            <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-purple-100 transform -rotate-45"></div>
+                            <span class="text-[10px] font-bold text-purple-500 uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded-full">Stylist</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-purple-800 mb-2 flex items-center gap-2">
+                                <i class="fas fa-tshirt"></i> 오늘의 옷차림 추천
+                            </h4>
+                            <div class="bg-white p-4 rounded-xl rounded-tl-none border border-purple-100 shadow-sm relative flex flex-col gap-2">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                                        <i th:class="${weather.outfitIcon}"></i>
+                                    </div>
+                                    <span class="font-bold text-gray-800">Today's Pick!</span>
+                                </div>
+                                <p class="text-gray-700 leading-relaxed font-medium text-sm md:text-base">
+                                    <span th:utext="${weather.clothingRecommendation}"></span>
+                                </p>
+                                <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-purple-100 transform -rotate-45"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -606,52 +625,59 @@
 
 <!-- [스크립트] Chart.js 그래프 생성 로직 -->
 <script th:inline="javascript">
-    // [NEW] 무료 AI 캐스터 (TTS) 스크립트 추가
     function speakBriefing() {
         const text = document.getElementById('aiBriefingText').innerText;
         if (!text) {
             alert('읽어줄 브리핑 내용이 없습니다.');
             return;
         }
-
-        // 브라우저 내장 TTS 기능 사용 (무료)
         const speech = new SpeechSynthesisUtterance();
         speech.text = text;
-        speech.lang = 'ko-KR'; // 한국어 설정
-        speech.rate = 1.0; // 속도 (0.1 ~ 10)
-        speech.pitch = 1.0; // 음높이 (0 ~ 2)
-        speech.volume = 1.0; // 볼륨
-
-        // 목소리 선택 (가능하다면 Google 한국어 보이스 선택)
+        speech.lang = 'ko-KR';
+        speech.rate = 1.0;
+        speech.pitch = 1.0;
+        speech.volume = 1.0;
         const voices = window.speechSynthesis.getVoices();
         const koVoice = voices.find(v => v.lang.includes('ko') || v.name.includes('Google 한국어'));
         if (koVoice) {
             speech.voice = koVoice;
         }
-
-        // 기존 음성이 있다면 취소하고 새로 재생
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(speech);
     }
 
-    // Chart.js 로직 (기존 유지)
-    document.addEventListener("DOMContentLoaded", function() {
-        // [중요] TTS 목소리 목록 로드 트리거 (크롬 등 일부 브라우저는 비동기로 로드됨)
-        window.speechSynthesis.getVoices();
+    // AI 매니저 접기/펼치기 기능
+    function toggleAiManager() {
+        const content = document.getElementById('aiManagerContent');
+        const icon = document.getElementById('aiToggleIcon');
 
+        // 현재 max-height가 0인지(접힌 상태인지) 확인하는 로직
+        // Tailwind 클래스 토글 방식 사용
+        if (content.classList.contains('max-h-0')) {
+            // 펼치기
+            content.classList.remove('max-h-0', 'opacity-0');
+            content.classList.add('max-h-[1000px]', 'opacity-100');
+            icon.classList.remove('rotate-180');
+        } else {
+            // 접기
+            content.classList.remove('max-h-[1000px]', 'opacity-100');
+            content.classList.add('max-h-0', 'opacity-0');
+            icon.classList.add('rotate-180');
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        window.speechSynthesis.getVoices();
         const ctx = document.getElementById('weatherChart');
         if (!ctx) return;
-
         const labels = [];
         const tempPoints = [];
         const humidityPoints = [];
-
         /*[# th:each="item : ${weather.shortTermForecasts}"]*/
             labels.push(/*[[${#strings.substring(item.fcstTime, 0, 2)} + ':00']]*/ "12:00");
             tempPoints.push(/*[[${item.T1H}]]*/ 20);
             humidityPoints.push(/*[[${item.REH}]]*/ 50);
         /*[/]*/
-
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -660,7 +686,7 @@
                     {
                         label: '기온 (°C)',
                         data: tempPoints,
-                        borderColor: '#3b82f6', // blue-500
+                        borderColor: '#3b82f6',
                         backgroundColor: '#3b82f6',
                         yAxisID: 'y',
                         tension: 0.4,
@@ -672,7 +698,7 @@
                     {
                         label: '습도 (%)',
                         data: humidityPoints,
-                        borderColor: '#a855f7', // purple-500
+                        borderColor: '#a855f7',
                         backgroundColor: 'rgba(168, 85, 247, 0.1)',
                         yAxisID: 'y1',
                         tension: 0.4,
