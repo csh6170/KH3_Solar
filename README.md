@@ -89,19 +89,33 @@
 ```bash
 ├── src
 │   ├── main
-│   │   ├── java/com/solar/project
+│   │   ├── java/com/solar
 │   │   │   ├── controller
-│   │   │   │   └── SolarController.java  # 메인 컨트롤러 (API 통신 및 뷰 매핑)
+│   │   │   │   ├── EarthquakeController.java  # 지진 컨트롤러 
+│   │   │   │   ├── SolarController.java       # 내일 날씨와 태양광 전기생산 컨트롤러
+│   │   │   │   ├── TyphoonController.java     # 태풍 컨트롤러 
+│   │   │   │   └── WeatherController.java     # 날씨 컨트롤러 
+│   │   │   │ 
+│   │   │   └── dto                            # 데이터 전송 객체
+│   │   │   │   ├── EarthquakeDTO.java   
+│   │   │   │   ├── TyphoonDTO.java   
+│   │   │   │   └── WeatherDTO.java   
+│   │   │   │
 │   │   │   ├── service
+│   │   │   │   ├── ClothingService.java   # 기상청/재난 API 데이터 파싱 로직
+│   │   │   │   ├── LocationService.java   # 기상청/재난 API 데이터 파싱 로직
+│   │   │   │   ├── TomorrowWeatherService.java   # 기상청/재난 API 데이터 파싱 로직
 │   │   │   │   └── WeatherService.java   # 기상청/재난 API 데이터 파싱 로직
-│   │   │   └── dto                       # 데이터 전송 객체
+│   │   │   │   
 │   │   └── resources
 │   │       ├── static                    # CSS, JS, Images
 │   │       └── templates
-│   │           ├── index.html            # 메인 대시보드
-│   │           ├── main.html             # 모달 및 iframe 부모 페이지
 │   │           ├── earthquake.html       # 지진 감시 대시보드
-│   │           └── typhoon.html          # 태풍 감시 대시보드
+│   │           ├── index.html            # 메인 대시보드
+│   │           ├── result.html            # 메인 대시보드
+│   │           ├── typhoon.html          # 태풍 감시 대시보드
+│   │           ├── footer.html           # 태풍 감시 대시보드
+│   │           └── weather.html          # 모달 및 iframe 부모 페이지
 ├── python
 │   ├── predict.py                        # AI 예측 엔진 (Java와 ProcessBuilder로 통신)
 │   └── solar_model.pkl                   # 학습된 Random Forest 모델
@@ -121,9 +135,16 @@
 
 ## 👨‍💻 팀원 및 역할 (Team Members)
 
-* **[본인 이름]**: 풀스택 개발 (Spring Boot, Tailwind CSS), AI 모델 연동, 재난 API 통합 구현
-* *(다른 팀원 정보가 있다면 추가)*
-
+* 최성호, [Solar AI Engine & Core Logic]
+  • Scikit-learn(Random Forest)을 활용한 태양광 발전량 예측 모델 구축
+  • Python 예측 엔진과 Spring Boot(Java) 간의 ProcessBuilder 연동
+  • 발전량 기반 경제성 분석(전기요금 절약액) 알고리즘 구현
+* 조보근,"[Full-stack & Weather Safety Platform]
+  • Tailwind CSS 기반의 반응형 대시보드 UI/UX 설계 및 구현
+  • 기상청(단기예보, 지진, 태풍) 및 에어코리아 API 연동
+  • AI Caster 브리핑, 옷차림 및 음악 추천 등 라이프스타일 큐레이션 로직 구현
+  • 지진/태풍 실시간 감시 모니터링 페이지 개발"
+  
 ---
 
 ## © License
