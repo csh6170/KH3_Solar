@@ -3,7 +3,13 @@
 # ☀️ Solar AI & Weather Safety Dashboard
 > 기상청 API와 AI 모델을 결합한 지능형 태양광 발전 예측 및 재난 안전 큐레이션 서비스
 
-![Main Dashboard Screen](./images/main_dashboard.png)
+![Main Dashboard Screen]
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/098ab6d1-c7bb-472b-a100-50bc3e951ad4" width="100%">
+</p>
+
+> **이미지 설명**: 기상청 API와 AI 모델이 결합된 태양광 발전 예측 대시보드 메인 화면
+
 *(▲ 메인 대시보드 스크린샷을 여기에 넣어주세요)*
 
 ## 📖 프로젝트 개요 (Project Overview)
