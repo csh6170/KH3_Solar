@@ -1,4 +1,3 @@
----
 
 ```markdown
 # ☀️ Solar AI & Weather Safety Dashboard
