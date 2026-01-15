@@ -17,7 +17,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Slf4j
@@ -41,27 +43,40 @@ public class WeatherService {
     private final String URL_TYPHOON= "http://apis.data.go.kr/1360000/TyphoonInfoService/getTyphoonInfoList";// 태풍정보조회
     private final String URL_DUST   = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty";// 미세먼지정보조회
 
+    // 보건기상지수 (꽃가루) URL
+    private final String URL_POLLEN_OAK   = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getOakPollenRiskIdxV4";
+    private final String URL_POLLEN_PINE  = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getPinePollenRiskIdxV4";
+    private final String URL_POLLEN_WEEDS = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getWeedsPollenRiskIdxV4";
+
+    private final String URL_SUNRISE = "https://api.sunrise-sunset.org/json"; // 일출일몰시간조회 (외부 API, No Key Required)
+
     private final String AI_SERVER_URL = "http://localhost:5000";// AI 캐스터 및 DJ 서버 URL
 
     // =========== 메인 통합 조회 메서드 ===========
     public WeatherDTO getWeather(int nx, int ny, String areaNo, int stnId, double userLat, double userLon) {
         WeatherDTO dto = new WeatherDTO();
         try {
-            fetchVilageForecast(dto, nx, ny);
+            fetchVilageForecast(dto, nx, ny);       // 1. 단기예보
             // [FIX] 최저(TMN) 또는 최고(TMX) 기온이 누락되었다면, 02:00 기준 데이터로 보완 조회
             if (dto.getTMN() == null || dto.getTMX() == null) {
-                fetchDailyTempRange(dto, nx, ny); // 보완 로직 호출
+                fetchDailyTempRange(dto, nx, ny);   // 보완 로직 호출
             }
+            fetchUltraSrtForecast(dto, nx, ny);     // 2. 초단기예보
+            fetchLivingWeather(dto, areaNo);        // 3. 생활지수 (자외선)
 
-            fetchUltraSrtForecast(dto, nx, ny);
-            fetchLivingWeather(dto, areaNo);
-            fetchFineDust(dto, "서울"); // 기본값 서울, 추후 동적으로 변경 가능
-            fetchWeatherWarning(dto, stnId);
+            fetchSensibleTemp(dto);                 // 4. 체감온도 예측 (AI 서버 요청)
+            calculateDiscomfortIndex(dto);          // 5. 불쾌지수 계산 (자체 로직)
+            fetchPollenIndex(dto, areaNo);          // 6. 꽃가루 지수 (보건기상지수)
+            fetchSunriseSunset(dto, nx, ny);        // 7. 일출/일몰 시간
+
+            fetchFineDust(dto, "서울");     // 8. 미세먼지 (고정: 서울)
+            fetchWeatherWarning(dto, stnId);        // 9. 기상특보
 
             // 사용자 위치 기반 거리 계산 및 안전 분석 포함
-            fetchEarthquake(dto, userLat, userLon);
-            fetchTyphoon(dto, userLat, userLon);
+            fetchEarthquake(dto, userLat, userLon); // 10. 지진 정보
+            fetchTyphoon(dto, userLat, userLon);    // 11. 태풍 정보
 
+            // 12. AI 기능
             String recommendation = clothingService.recommendOutfit(dto.getTMP(), dto.getPTY(), dto.getWSD());
             String icon = clothingService.getOutfitIcon(dto.getTMP());
             dto.setClothingRecommendation(recommendation);
@@ -75,6 +90,319 @@ public class WeatherService {
             log.error("날씨 통합 조회 실패", e);
         }
         return dto;
+    }
+
+    // ================= [MODIFIED] 일출/일몰/월출/월몰 계산 로직 =================
+    private void fetchSunriseSunset(WeatherDTO dto, int nx, int ny) {
+        try {
+            double[] gps = convertGridToGps(nx, ny);
+            double lat = gps[0];
+            double lng = gps[1];
+
+            // 오늘 날짜 기준 API 호출
+            URI uri = UriComponentsBuilder.fromUriString(URL_SUNRISE)
+                    .queryParam("lat", lat)
+                    .queryParam("lng", lng)
+                    .queryParam("formatted", "0")
+                    .queryParam("date", "today")
+                    .build()
+                    .toUri();
+
+            String json = new RestTemplate().getForObject(uri, String.class);
+            JsonNode root = mapper.readTree(json);
+
+            if (!"OK".equals(root.path("status").asText())) return;
+
+            JsonNode results = root.path("results");
+            String sunriseUtc = results.path("sunrise").asText();
+            String sunsetUtc = results.path("sunset").asText();
+
+            // ZonedDateTime을 사용하여 시간대 변환 (UTC -> KST)
+            ZonedDateTime sunriseZoned = ZonedDateTime.parse(sunriseUtc, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    .withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+            ZonedDateTime sunsetZoned = ZonedDateTime.parse(sunsetUtc, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    .withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+
+            dto.setSunrise(sunriseZoned.format(DateTimeFormatter.ofPattern("HH:mm")));
+            dto.setSunset(sunsetZoned.format(DateTimeFormatter.ofPattern("HH:mm")));
+
+            // 현재 시간
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+            LocalDateTime sunriseTime = sunriseZoned.toLocalDateTime();
+            LocalDateTime sunsetTime = sunsetZoned.toLocalDateTime();
+
+            // 낮/밤 판별
+            boolean isDay = now.isAfter(sunriseTime) && now.isBefore(sunsetTime);
+            dto.setDayTime(isDay);
+
+            if (isDay) {
+                // [낮] Sun Cycle: 일출 ~ 일몰
+                long totalDaySeconds = ChronoUnit.SECONDS.between(sunriseTime, sunsetTime);
+                long currentSeconds = ChronoUnit.SECONDS.between(sunriseTime, now);
+                double progress = (double) currentSeconds / totalDaySeconds * 100.0;
+                dto.setSunProgress(Math.min(Math.max(progress, 0), 100));
+            } else {
+                // [밤] Moon Cycle: 일몰 ~ 다음날 일출
+                // 만약 현재 시간이 자정 이후(새벽)라면, '어제 일몰' ~ '오늘 일출' 기준
+                // 만약 현재 시간이 자정 이전(저녁)라면, '오늘 일몰' ~ '내일 일출' 기준
+
+                LocalDateTime moonStart; // 시작점 (일몰)
+                LocalDateTime moonEnd;   // 끝점 (일출)
+
+                if (now.isBefore(sunriseTime)) {
+                    // 새벽 시간대: 어제 일몰 ~ 오늘 일출
+                    moonStart = sunsetTime.minusDays(1); // 어제 일몰
+                    moonEnd = sunriseTime;               // 오늘 일출
+                } else {
+                    // 저녁 시간대: 오늘 일몰 ~ 내일 일출
+                    moonStart = sunsetTime;              // 오늘 일몰
+                    moonEnd = sunriseTime.plusDays(1);   // 내일 일출
+                }
+
+                long totalNightSeconds = ChronoUnit.SECONDS.between(moonStart, moonEnd);
+                long currentNightSeconds = ChronoUnit.SECONDS.between(moonStart, now);
+                double progress = (double) currentNightSeconds / totalNightSeconds * 100.0;
+                dto.setSunProgress(Math.min(Math.max(progress, 0), 100));
+
+                // 달의 위상 계산 (간이 로직 - 음력 날짜 계산이 복잡하므로 API 없이 날짜 기반 추정)
+                // 실제로는 Lunar API를 써야 정확하지만, 여기서는 시각적 재미를 위해 간단히 처리하거나 고정값 사용
+                dto.setMoonPhase("Moon Night");
+            }
+
+        } catch (Exception e) {
+            log.warn("일출/일몰 조회 실패: {}", e.getMessage());
+            dto.setSunrise("06:00");
+            dto.setSunset("19:30");
+            dto.setSunProgress(50);
+            dto.setDayTime(true);
+        }
+    }
+
+    // [Helper] 기상청 격자(Grid) -> 위경도(GPS) 변환 (Lambert Conformal Conic Projection)
+    private double[] convertGridToGps(int nx, int ny) {
+        double RE = 6371.00877; // 지구 반경(km)
+        double GRID = 5.0; // 격자 간격(km)
+        double SLAT1 = 30.0; // 투영 위도1(degree)
+        double SLAT2 = 60.0; // 투영 위도2(degree)
+        double OLON = 126.0; // 기준점 경도(degree)
+        double OLAT = 38.0; // 기준점 위도(degree)
+        double XO = 43; // 기준점 X좌표(GRID)
+        double YO = 136; // 기준점 Y좌표(GRID)
+
+        double DEGRAD = Math.PI / 180.0;
+        double RADDEG = 180.0 / Math.PI;
+
+        double re = RE / GRID;
+        double slat1 = SLAT1 * DEGRAD;
+        double slat2 = SLAT2 * DEGRAD;
+        double olon = OLON * DEGRAD;
+        double olat = OLAT * DEGRAD;
+
+        double sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+        sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
+        double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+        sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
+        double ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
+        ro = re * sf / Math.pow(ro, sn);
+
+        double xn = nx - XO;
+        double yn = ro - ny + YO;
+        double ra = Math.sqrt(xn * xn + yn * yn);
+        if (sn < 0.0) ra = -ra;
+        double alat = Math.pow((re * sf / ra), (1.0 / sn));
+        alat = 2.0 * Math.atan(alat) - Math.PI * 0.5;
+
+        double theta;
+        if (Math.abs(xn) <= 0.0) theta = 0.0;
+        else {
+            if (Math.abs(yn) <= 0.0) {
+                theta = Math.PI * 0.5;
+                if (xn < 0.0) theta = -theta;
+            } else theta = Math.atan2(xn, yn);
+        }
+        double alon = theta / sn + olon;
+        double lat = alat * RADDEG;
+        double lon = alon * RADDEG;
+
+        return new double[]{lat, lon};
+    }
+
+
+
+
+    // ================= 꽃가루 농도 지수 조회 로직 =================
+    private void fetchPollenIndex(WeatherDTO dto, String areaNo) {
+        // 행정구역 코드 보정
+        String safeAreaNo = (areaNo == null || areaNo.length() != 10) ? "1100000000" : areaNo;
+
+        // 현재 시간 (요청 시간 계산: 06시, 18시 기준)
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        String requestTime;
+        if (now.getHour() < 6) requestTime = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd18"));
+        else if (now.getHour() < 18) requestTime = now.format(DateTimeFormatter.ofPattern("yyyyMMdd06"));
+        else requestTime = now.format(DateTimeFormatter.ofPattern("yyyyMMdd18"));
+
+        // 계절 체크 (불필요한 API 호출 방지)
+        int month = now.getMonthValue();
+        boolean isSpring = (month >= 4 && month <= 6); // 4~6월: 참나무, 소나무
+        boolean isAutumn = (month >= 8 && month <= 10); // 8~10월: 잡초류
+
+        try {
+            if (isSpring) {
+                // 참나무
+                String oakVal = callPollenApi(URL_POLLEN_OAK, safeAreaNo, requestTime);
+                dto.setOakPollenRisk(oakVal);
+                // 소나무
+                String pineVal = callPollenApi(URL_POLLEN_PINE, safeAreaNo, requestTime);
+                dto.setPinePollenRisk(pineVal);
+            }
+
+            if (isAutumn) {
+                // 잡초류
+                String weedsVal = callPollenApi(URL_POLLEN_WEEDS, safeAreaNo, requestTime);
+                dto.setWeedsPollenRisk(weedsVal);
+            }
+
+            // 코멘트 생성
+            generatePollenComment(dto);
+
+        } catch (Exception e) {
+            log.warn("꽃가루 지수 조회 실패: {}", e.getMessage());
+            dto.setPollenComment("꽃가루 정보를 불러올 수 없습니다.");
+        }
+    }
+
+    // API 호출 헬퍼
+    private String callPollenApi(String url, String areaNo, String time) {
+        try {
+            URI uri = UriComponentsBuilder.fromUriString(url)
+                    .queryParam("serviceKey", API_KEY)
+                    .queryParam("pageNo", "1")
+                    .queryParam("numOfRows", "10")
+                    .queryParam("dataType", "JSON")
+                    .queryParam("areaNo", areaNo)
+                    .queryParam("time", time)
+                    .build()
+                    .toUri();
+
+            String json = new RestTemplate().getForObject(uri, String.class);
+            JsonNode root = mapper.readTree(json);
+
+            if (!"00".equals(root.path("response").path("header").path("resultCode").asText())) return null;
+
+            JsonNode items = root.path("response").path("body").path("items").path("item");
+            if (items.isEmpty()) return null;
+
+            // h0(오늘) 값 반환
+            return items.get(0).path("h0").asText();
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // 코멘트 생성 로직
+    private void generatePollenComment(WeatherDTO dto) {
+        String oak = dto.getOakPollenRisk();
+        String pine = dto.getPinePollenRisk();
+        String weeds = dto.getWeedsPollenRisk();
+
+        int maxRisk = 0;
+        String type = "";
+
+        if (oak != null) {
+            try { int val = Integer.parseInt(oak); if(val > maxRisk) { maxRisk = val; type = "참나무"; } } catch(Exception e){}
+        }
+        if (pine != null) {
+            try { int val = Integer.parseInt(pine); if(val > maxRisk) { maxRisk = val; type = "소나무"; } } catch(Exception e){}
+        }
+        if (weeds != null) {
+            try { int val = Integer.parseInt(weeds); if(val > maxRisk) { maxRisk = val; type = "잡초류"; } } catch(Exception e){}
+        }
+
+        if (maxRisk == 0) {
+            dto.setPollenComment("꽃가루 위험이 없습니다.");
+        } else if (maxRisk == 1) {
+            dto.setPollenComment("꽃가루 농도가 낮습니다.");
+        } else if (maxRisk == 2) {
+            dto.setPollenComment(type + " 꽃가루가 날릴 수 있습니다. 환기에 주의하세요.");
+        } else if (maxRisk >= 3) {
+            dto.setPollenComment("🚨 " + type + " 꽃가루 농도 위험! 마스크를 꼭 착용하세요.");
+        } else {
+            dto.setPollenComment("제공 기간이 아닙니다.");
+        }
+    }
+
+    // ================= AI 체감온도 예측 요청 =================
+    private void fetchSensibleTemp(WeatherDTO dto) {
+        try {
+            // 현재 기온, 습도, 풍속 데이터 확보
+            String tmpStr = dto.getTMP(); // 기온
+            String rehStr = dto.getREH(); // 습도
+            String wsdStr = dto.getWSD(); // 풍속
+
+            if (tmpStr != null && rehStr != null && wsdStr != null) {
+                RestTemplate restTemplate = new RestTemplate();
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("temp", Double.parseDouble(tmpStr));
+                requestBody.put("hum", Double.parseDouble(rehStr));
+                requestBody.put("wind", Double.parseDouble(wsdStr));
+
+                @SuppressWarnings("unchecked")
+                Map<String, Double> response = restTemplate.postForObject(
+                        AI_SERVER_URL + "/sensible",
+                        requestBody,
+                        Map.class
+                );
+
+                if (response != null && response.containsKey("sensible_temp")) {
+                    dto.setSensibleTemp(String.valueOf(response.get("sensible_temp")));
+                } else {
+                    dto.setSensibleTemp(dto.getTMP()); // 실패 시 현재 기온과 동일하게 설정
+                }
+            } else {
+                dto.setSensibleTemp("-");
+            }
+        } catch (Exception e) {
+            log.warn("체감온도 AI 예측 실패: {}", e.getMessage());
+            dto.setSensibleTemp(dto.getTMP()); // 기본값
+        }
+    }
+
+    // ================= 불쾌지수(DI) 계산 로직 =================
+    // 공식: DI = 0.81 * T + 0.01 * H * (0.99 * T - 14.3) + 46.3
+    // T: 기온(°C), H: 상대습도(%)
+    // 단계: 매우높음(80 이상), 높음(75 이상), 보통(68 이상), 낮음(68 미만)
+    private void calculateDiscomfortIndex(WeatherDTO dto) {
+        try {
+            if (dto.getTMP() == null || dto.getREH() == null) return;
+
+            double t = Double.parseDouble(dto.getTMP());
+            double h = Double.parseDouble(dto.getREH());
+
+            double di = 0.81 * t + 0.01 * h * (0.99 * t - 14.3) + 46.3;
+
+            dto.setDiscomfortIndex(String.format("%.1f", di));
+
+            // 단계 구분
+            if (di >= 80) {
+                dto.setDiscomfortStage("매우높음");
+                dto.setDiscomfortComment("전원 불쾌감을 느낍니다. 다툼 주의! 🤬");
+            } else if (di >= 75) {
+                dto.setDiscomfortStage("높음");
+                dto.setDiscomfortComment("50% 정도 불쾌감을 느낍니다. 😓");
+            } else if (di >= 68) {
+                dto.setDiscomfortStage("보통");
+                dto.setDiscomfortComment("불쾌감이 나타나기 시작합니다. 😐");
+            } else {
+                dto.setDiscomfortStage("낮음");
+                dto.setDiscomfortComment("쾌적한 날씨입니다. 상쾌해요! 😄");
+            }
+
+        } catch (Exception e) {
+            log.warn("불쾌지수 계산 실패");
+            dto.setDiscomfortStage("-");
+        }
     }
 
     // ================= 일일 최저/최고 기온 보완 로직 =================

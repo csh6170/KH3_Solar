@@ -14,32 +14,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; }
-        /* 스크롤바 숨김 처리 */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        /* 배경 이미지 변경 시 부드러운 전환 효과 */
         .bg-transition { transition: background-image 0.5s ease-in-out; }
+        .sun-path {
+            stroke-dasharray: 251.2; /* 2 * PI * R (40) roughly 251 */
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 2s ease-out;
+        }
     </style>
 </head>
 
-<!-- [핵심] 배경 이미지 동적 바인딩 & 배경 설정 -->
+<!-- 배경 이미지 동적 바인딩 & 배경 설정 -->
 <body class="min-h-screen p-4 md:p-8 bg-cover bg-center bg-fixed bg-no-repeat bg-transition"
       th:style="'background-image: url(' + ${weather.bgImageUrl} + ');'">
 
-<!-- 배경 오버레이 (검은색 30% 투명도) - 글자 가독성을 위해 필수 -->
+<!-- 배경 오버레이 - 글자 가독성을 위해 필수 -->
 <div class="fixed inset-0 bg-black/30 z-0 pointer-events-none"></div>
 
-<!-- 메인 컨텐츠 래퍼 (z-index를 주어 오버레이 위로 올림) -->
+<!-- 메인 컨텐츠 래퍼 -->
 <div class="max-w-5xl mx-auto relative z-10">
 
     <!-- 1. 상단 헤더 & 지역 선택 -->
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-white drop-shadow-md">
-                <i class="fas fa-satellite-dish text-blue-300 mr-2"></i>기상청 예보 대시보드
-            </h1>
-            <p class="text-white/90 text-sm mt-1 drop-shadow-sm font-medium">
-                발표: <span th:text="${weather.baseDate} + ' ' + ${weather.baseTime}"></span>
+            <div class="inline-flex items-center justify-center  gap-2 mb-1">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <i class="fas fa-satellite-dish text-white text-2xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">
+                        기상청 예보 <span class="text-cyan-300">대시보드</span>
+                    </h1>
+                </div>
+            </div>
+            <p class="text-white/90 text-xs font-medium tracking-wide">
+                Live Update: <span class="font-bold text-white" th:text="${weather.baseDate} + ' ' + ${weather.baseTime}"></span>
             </p>
         </div>
 
@@ -49,6 +59,7 @@
             <span>태양광 발전 예측하기</span>
         </button>
 
+        <!-- 태양광 발전 예측 모달 -->
         <div id="predictModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen p-4 text-center">
                 <div class="fixed inset-0 bg-black opacity-50 transition-opacity" onclick="closeModal()"></div>
@@ -67,6 +78,7 @@
             </div>
         </div>
 
+        <!-- 지역 선택 드롭다운 -->
         <div class="relative w-full md:w-64">
             <select onchange="const c=this.value.split(','); location.href='/?nx='+c[0]+'&ny='+c[1]"
                     class="w-full p-3 rounded-xl border-none bg-white/80 backdrop-blur-md font-bold text-gray-700 shadow-lg focus:ring-2 focus:ring-blue-400 outline-none cursor-pointer hover:bg-white/90 transition">
@@ -81,106 +93,122 @@
         </div>
     </div>
 
-    <!-- 2. 메인 날씨 카드 (글래스모피즘 적용) -->
-    <div class="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-gray-800 shadow-2xl mb-6 flex flex-col md:flex-row items-center justify-between border border-white/50">
-        <div class="text-center md:text-left">
-            <h2 class="text-2xl font-bold mb-2 text-gray-700 flex items-center justify-center md:justify-start gap-2">
-                <i class="fas fa-location-dot text-blue-500"></i>
-                <span th:text="${currentRegionName}">지역명</span>
-            </h2>
-            <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
-                <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
+    <!-- 2. 메인 날씨 카드 -->
+    <a href="https://www.kma.go.kr/w/iframe/dfs.do" target="_blank" class="block hover-card">
+        <div class="bg-white/90 backdrop-blur-md rounded-3xl p-8 text-gray-800 shadow-2xl mb-6 flex flex-col md:flex-row items-center justify-between border border-white/50">
+            <div class="text-center md:text-left">
+                <h2 class="text-2xl font-bold mb-2 text-gray-700 flex items-center justify-center md:justify-start gap-2">
+                    <i class="fas fa-location-dot text-blue-500"></i>
+                    <span th:text="${currentRegionName}">지역명</span>
+                </h2>
+                <!-- 현재 온도 -->
+                <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
+                    <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
+                </div>
+                <!-- 날씨 상태 및 최저/최고 기온 -->
+                <p class="text-xl font-medium text-gray-600">
+                    <span th:text="${weather.SKY}">-</span>
+                    <span th:if="${weather.PTY != '강수없음'}" th:text="'/ ' + ${weather.PTY}"></span>
+                </p>
+                <div class="mt-6 flex gap-4 text-sm bg-gray-100/80 p-3 rounded-xl inline-flex shadow-inner">
+                    <span class="flex items-center gap-1"><i class="fas fa-temperature-low text-blue-500"></i> 최저 <span th:text="${weather.TMN != null ? weather.TMN : '-'}"></span>°</span>
+                    <span class="w-px h-4 bg-gray-300"></span>
+                    <span class="flex items-center gap-1"><i class="fas fa-temperature-high text-red-500"></i> 최고 <span th:text="${weather.TMX != null ? weather.TMX : '-'}"></span>°</span>
+                    <span class="w-px h-4 bg-gray-300"></span>
+                    <span class="flex items-center gap-1"><i class="fas fa-user-check text-indigo-500"></i> 체감 <span th:text="${weather.sensibleTemp != null ? weather.sensibleTemp : '-'}"></span>°</span>
+                </div>
             </div>
-            <p class="text-xl font-medium text-gray-600">
-                <span th:text="${weather.SKY}">-</span>
-                <span th:if="${weather.PTY != '강수없음'}" th:text="'/ ' + ${weather.PTY}"></span>
-            </p>
-            <div class="mt-6 flex gap-4 text-sm bg-gray-100/80 p-3 rounded-xl inline-flex shadow-inner">
-                <span class="flex items-center gap-1"><i class="fas fa-temperature-low text-blue-500"></i> 최저 <span th:text="${weather.TMN != null ? weather.TMN : '-'}"></span>°</span>
-                <span class="w-px h-4 bg-gray-300"></span>
-                <span class="flex items-center gap-1"><i class="fas fa-temperature-high text-red-500"></i> 최고 <span th:text="${weather.TMX != null ? weather.TMX : '-'}"></span>°</span>
+
+            <!-- 날씨 아이콘 -->
+            <div class="mt-8 md:mt-0 transform">
+                <i th:if="${weather.PTY == '비'}" class="fas fa-cloud-showers-heavy text-9xl text-blue-500 animate-bounce drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '눈'}" class="fas fa-snowflake text-9xl text-sky-300 animate-spin-slow drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '비/눈'}" class="fas fa-cloud-meatball text-9xl text-gray-400 animate-pulse drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '소나기'}" class="fas fa-cloud-showers-water text-9xl text-blue-600 animate-bounce drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '빗방울'}" class="fas fa-cloud-rain text-9xl text-blue-400 animate-pulse drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '강수없음' && weather.SKY == '맑음'}" class="fas fa-sun text-9xl text-yellow-400 animate-pulse drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]"></i>
+                <i th:if="${weather.PTY == '강수없음' && weather.SKY == '구름많음'}" class="fas fa-cloud-sun text-9xl text-gray-400 drop-shadow-xl"></i>
+                <i th:if="${weather.PTY == '강수없음' && weather.SKY == '흐림'}" class="fas fa-cloud text-9xl text-gray-500 drop-shadow-xl"></i>
             </div>
         </div>
+    </a>
 
-        <!-- 날씨 아이콘 (애니메이션 & 그림자 강화) -->
-        <div class="mt-8 md:mt-0 transform hover:scale-110 transition duration-300">
-            <i th:if="${weather.PTY == '비'}" class="fas fa-cloud-showers-heavy text-9xl text-blue-500 animate-bounce drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '눈'}" class="fas fa-snowflake text-9xl text-sky-300 animate-spin-slow drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '비/눈'}" class="fas fa-cloud-meatball text-9xl text-gray-400 animate-pulse drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '소나기'}" class="fas fa-cloud-showers-water text-9xl text-blue-600 animate-bounce drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '빗방울'}" class="fas fa-cloud-rain text-9xl text-blue-400 animate-pulse drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '강수없음' && weather.SKY == '맑음'}" class="fas fa-sun text-9xl text-yellow-400 animate-pulse drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]"></i>
-            <i th:if="${weather.PTY == '강수없음' && weather.SKY == '구름많음'}" class="fas fa-cloud-sun text-9xl text-gray-400 drop-shadow-xl"></i>
-            <i th:if="${weather.PTY == '강수없음' && weather.SKY == '흐림'}" class="fas fa-cloud text-9xl text-gray-500 drop-shadow-xl"></i>
-        </div>
-    </div>
-
-    <!-- 3. [통합] AI 라이프스타일 매니저 (브리핑 + 옷차림 추천) -->
-    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden mb-8 border border-white/50">
-        <!-- 상단 헤더 (공통) -->
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between">
+    <!-- 3. [통합] AI 라이프스타일 매니저 (접기/펼치기 기능 추가) -->
+    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden mb-8 transition-all duration-300">
+        <!-- 상단 헤더 -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between cursor-pointer" onclick="toggleAiManager()">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl shadow-inner">
                     🤖
                 </div>
                 <h3 class="text-lg font-bold text-white tracking-wide">AI 라이프스타일 매니저</h3>
             </div>
-            <button onclick="speakBriefing()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-bold transition active:scale-95 backdrop-blur-sm border border-white/10">
-                <i class="fas fa-volume-up"></i> 브리핑 듣기
-            </button>
+
+            <div class="flex items-center gap-3">
+                <!-- 브리핑 듣기 버튼 (이벤트 버블링 방지를 위해 onclick에 event.stopPropagation() 추가 권장) -->
+                <button onclick="speakBriefing(); event.stopPropagation();" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-bold transition active:scale-95 backdrop-blur-sm border border-white/10">
+                    <i class="fas fa-volume-up"></i> <span class="hidden sm:inline">브리핑 듣기</span>
+                </button>
+
+                <!-- 접기/펼치기 토글 버튼 -->
+                <button class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition backdrop-blur-sm border border-white/10">
+                    <i id="aiToggleIcon" class="fas fa-chevron-up transition-transform duration-500"></i>
+                </button>
+            </div>
         </div>
 
-        <!-- 컨텐츠 영역 (좌우 분할) -->
-        <div class="flex flex-col md:flex-row">
-            <!-- 왼쪽: AI 기상 캐스터 브리핑 -->
-            <div class="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-gray-100 bg-indigo-50/30">
-                <div class="flex gap-4 items-start">
-                    <div class="flex-shrink-0 text-center">
-                        <div class="w-16 h-16 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center text-3xl shadow-sm mb-2">
-                            👩‍💼
+        <!-- 컨텐츠 영역 (애니메이션을 위한 래퍼 추가) -->
+        <!-- max-h-[1000px]은 내용물보다 충분히 큰 값이어야 함. 내용물이 보일 때 사용. -->
+        <div id="aiManagerContent" class="transition-all duration-500 ease-in-out max-h-[1000px] opacity-100 overflow-hidden">
+            <div class="flex flex-col md:flex-row">
+                <!-- 왼쪽: AI 기상 캐스터 브리핑 -->
+                <div class="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-gray-100 bg-indigo-50/30">
+                    <div class="flex gap-4 items-start">
+                        <div class="flex-shrink-0 text-center">
+                            <div class="w-16 h-16 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center text-3xl shadow-sm mb-2">
+                                👩‍💼
+                            </div>
+                            <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded-full">Caster</span>
                         </div>
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded-full">Caster</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-microphone-alt"></i> 오늘의 날씨 브리핑
-                        </h4>
-                        <div class="bg-white p-4 rounded-xl rounded-tl-none border border-indigo-100 shadow-sm relative">
-                            <p id="aiBriefingText" class="text-gray-700 leading-relaxed font-medium text-sm md:text-base" th:utext="${weather.aiBriefing}">
-                                캐스터가 대본을 준비중입니다...
-                            </p>
-                            <!-- 말풍선 꼬리 -->
-                            <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-indigo-100 transform -rotate-45"></div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                                <i class="fas fa-microphone-alt"></i> 오늘의 날씨 브리핑
+                            </h4>
+                            <div class="bg-white p-4 rounded-xl rounded-tl-none border border-indigo-100 shadow-sm relative">
+                                <p id="aiBriefingText" class="text-gray-700 leading-relaxed font-medium text-sm md:text-base" th:utext="${weather.aiBriefing}">
+                                    캐스터가 대본을 준비중입니다...
+                                </p>
+                                <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-indigo-100 transform -rotate-45"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 오른쪽: AI 옷차림 추천 -->
-            <div class="flex-1 p-6 md:p-8 bg-purple-50/30">
-                <div class="flex gap-4 items-start">
-                    <div class="flex-shrink-0 text-center">
-                        <div class="w-16 h-16 rounded-full bg-white border-2 border-purple-200 flex items-center justify-center text-3xl shadow-sm mb-2">
-                            👗
-                        </div>
-                        <span class="text-[10px] font-bold text-purple-500 uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded-full">Stylist</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-bold text-purple-800 mb-2 flex items-center gap-2">
-                            <i class="fas fa-tshirt"></i> 오늘의 옷차림 추천
-                        </h4>
-                        <div class="bg-white p-4 rounded-xl rounded-tl-none border border-purple-100 shadow-sm relative flex flex-col gap-2">
-                            <div class="flex items-center gap-3 mb-1">
-                                <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
-                                    <i th:class="${weather.outfitIcon}"></i>
-                                </div>
-                                <span class="font-bold text-gray-800">Today's Pick!</span>
+                <!-- 오른쪽: AI 옷차림 추천 -->
+                <div class="flex-1 p-6 md:p-8 bg-purple-50/30">
+                    <div class="flex gap-4 items-start">
+                        <div class="flex-shrink-0 text-center">
+                            <div class="w-16 h-16 rounded-full bg-white border-2 border-purple-200 flex items-center justify-center text-3xl shadow-sm mb-2">
+                                👗
                             </div>
-                            <p class="text-gray-700 leading-relaxed font-medium text-sm md:text-base">
-                                <span th:utext="${weather.clothingRecommendation}"></span>
-                            </p>
-                            <!-- 말풍선 꼬리 -->
-                            <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-purple-100 transform -rotate-45"></div>
+                            <span class="text-[10px] font-bold text-purple-500 uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded-full">Stylist</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-purple-800 mb-2 flex items-center gap-2">
+                                <i class="fas fa-tshirt"></i> 오늘의 옷차림 추천
+                            </h4>
+                            <div class="bg-white p-4 rounded-xl rounded-tl-none border border-purple-100 shadow-sm relative flex flex-col gap-2">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                                        <i th:class="${weather.outfitIcon}"></i>
+                                    </div>
+                                    <span class="font-bold text-gray-800">Today's Pick!</span>
+                                </div>
+                                <p class="text-gray-700 leading-relaxed font-medium text-sm md:text-base">
+                                    <span th:utext="${weather.clothingRecommendation}"></span>
+                                </p>
+                                <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-purple-100 transform -rotate-45"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -239,6 +267,75 @@
             </h4>
             <div class="relative h-64 w-full">
                 <canvas id="weatherChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 5. Sun/Moon Cycle 태양/달의 이동 -->
+    <div class="mb-10">
+        <h3 class="text-xl font-bold text-white mb-4 px-1 flex items-center drop-shadow-md">
+            <i class="fas" th:classappend="${weather.dayTime ? 'fa-sun text-yellow-300' : 'fa-moon text-blue-200'}"></i>
+            <span class="ml-2" th:text="${weather.dayTime ? '태양의 이동' : '달의 이동'}">태양의 이동</span>
+        </h3>
+        <div class="bg-gradient-to-br p-8 rounded-3xl shadow-2xl relative overflow-hidden text-center border border-white/10"
+             th:classappend="${weather.dayTime ? 'from-indigo-900 to-slate-800' : 'from-slate-900 to-black'}">
+            <!-- 별 배경 효과 -->
+            <div class="absolute inset-0 opacity-30 pointer-events-none" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10 flex flex-col items-center">
+                <div class="w-full max-w-sm relative h-40 mb-2">
+                    <!-- 반원 궤도 SVG -->
+                    <svg viewBox="0 0 100 50" class="w-full h-full overflow-visible">
+                        <!-- 궤도 트랙 -->
+                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4" />
+
+                        <!-- 진행 바 (진행률에 따라 채워짐) -->
+                        <path id="sunProgressPath" d="M 10 50 A 40 40 0 0 1 90 50" fill="none"
+                              th:attr="stroke=${weather.dayTime ? 'url(#sunGradient)' : 'url(#moonGradient)'}"
+                              stroke-width="4" stroke-linecap="round" class="sun-path" />
+
+                        <!-- 그라데이션 정의 -->
+                        <defs>
+                            <linearGradient id="sunGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#FDB813;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="moonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#E2E8F0;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#94A3B8;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- 태양/달 아이콘 (JS로 위치 이동) -->
+                        <g id="sunIconGroup">
+                            <circle cx="0" cy="0" r="3"
+                                    th:attr="fill=${weather.dayTime ? '#FDB813' : '#E2E8F0'}, filter=${weather.dayTime ? 'drop-shadow(0 0 4px #FDB813)' : 'drop-shadow(0 0 4px #E2E8F0)'}" />
+                            <text x="0" y="-6" text-anchor="middle" fill="white" font-size="3" font-weight="bold" id="sunTimeText">Now</text>
+                        </g>
+                    </svg>
+
+                    <!-- 지평선 -->
+                    <div class="absolute bottom-0 left-0 w-full h-px bg-white/20"></div>
+                </div>
+
+                <!-- 일출/일몰 시간 표시 -->
+                <div class="flex justify-between w-full max-w-sm px-2 text-white/90 text-sm font-medium">
+                    <div class="text-left">
+                        <p class="text-xs text-white/50 uppercase tracking-wider" th:text="${weather.dayTime ? 'Sunrise' : 'Moonrise'}">Sunrise</p>
+                        <p class="text-lg font-bold text-yellow-300">
+                            <i class="fas" th:classappend="${weather.dayTime ? 'fa-sun' : 'fa-moon'}"></i>
+                            <span th:text="${weather.dayTime ? weather.sunrise : weather.sunset}">06:00</span>
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-white/50 uppercase tracking-wider" th:text="${weather.dayTime ? 'Sunset' : 'Moonset'}">Sunset</p>
+                        <p class="text-lg font-bold text-orange-400">
+                            <span th:text="${weather.dayTime ? weather.sunset : weather.sunrise}">19:00</span>
+                            <i class="fas" th:classappend="${weather.dayTime ? 'fa-moon' : 'fa-sun'}"></i>
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -417,44 +514,90 @@
         </div>
     </div>
 
-    <!-- 8. 생활 기상 지수 & 미세먼지 -->
+    <!-- 8. 생활 기상 지수 -->
     <div class="mb-10">
         <h3 class="text-xl font-bold text-white mb-4 px-1 flex items-center drop-shadow-md">
             <i class="fas fa-heart text-pink-300 mr-2"></i>생활 및 대기 정보
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- 자외선 -->
-            <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-orange-100/50 flex items-center justify-between hover:shadow-lg transition">
-                <div>
-                    <div class="text-sm font-bold text-orange-500 mb-1 flex items-center gap-1"><i class="fas fa-sun"></i> 자외선 지수</div>
-                    <div class="text-3xl font-bold text-gray-800 mb-2">
-                        <span th:text="${weather.uvStage}">-</span>
-                        <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.uvIndex} + ')'"></span>
+            <!-- 자외선 카드 -->
+            <a href="https://www.weather.go.kr/w/theme/daily-life/life-index.do" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-orange-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-orange-500 mb-1 flex items-center gap-1"><i class="fas fa-sun"></i> 자외선 지수</div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2">
+                            <span th:text="${weather.uvStage}">-</span>
+                            <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.uvIndex} + ')'"></span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.uvComment}">정보 로딩중...</p>
                     </div>
-                    <p class="text-sm text-gray-500 leading-tight" th:text="${weather.uvComment}">정보 로딩중...</p>
+                    <div class="text-5xl text-orange-200 opacity-50"><i class="fas fa-umbrella-beach"></i></div>
                 </div>
-                <div class="text-5xl text-orange-200 opacity-50"><i class="fas fa-umbrella-beach"></i></div>
-            </div>
+            </a>
 
-            <!-- [REPLACED] 미세먼지 카드 (대기확산 대체) -->
-            <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-gray-100/50 flex items-center justify-between hover:shadow-lg transition">
-                <div>
-                    <div class="text-sm font-bold text-gray-600 mb-1 flex items-center gap-1"><i class="fas fa-smog"></i> 미세먼지(PM10)</div>
-                    <div class="text-3xl font-bold text-gray-800 mb-2">
-                        <span th:text="${weather.getGradeText(weather.pm10Grade)}">-</span>
-                        <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.pm10Value} + '㎍/㎥)'"></span>
+            <!-- 미세먼지 카드 -->
+            <a href="https://www.airkorea.or.kr/" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-gray-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-gray-600 mb-1 flex items-center gap-1"><i class="fas fa-smog"></i> 미세먼지(PM10)</div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2">
+                            <span th:text="${weather.getGradeText(weather.pm10Grade)}">-</span>
+                            <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.pm10Value} + '㎍/㎥)'"></span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.dustComment}">대기 정보 수신 중...</p>
                     </div>
-                    <p class="text-sm text-gray-500 leading-tight" th:text="${weather.dustComment}">대기 정보 수신 중...</p>
+                    <div class="text-5xl opacity-50"
+                         th:classappend="${weather.pm10Grade == '1' ? 'text-blue-200' : (weather.pm10Grade == '2' ? 'text-green-200' : (weather.pm10Grade == '3' ? 'text-yellow-200' : 'text-red-200'))}">
+                        <i class="fas fa-mask"></i>
+                    </div>
                 </div>
-                <div class="text-5xl opacity-50"
-                     th:classappend="${weather.pm10Grade == '1' ? 'text-blue-200' : (weather.pm10Grade == '2' ? 'text-green-200' : (weather.pm10Grade == '3' ? 'text-yellow-200' : 'text-red-200'))}">
-                    <i class="fas fa-mask"></i>
+            </a>
+
+            <!-- 불쾌지수 카드 -->
+            <a href="https://www.weatheri.co.kr/useful/useful04.php" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-red-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-red-500 mb-1 flex items-center gap-1"><i class="fas fa-tired"></i> 불쾌지수</div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2">
+                            <span th:text="${weather.discomfortStage}">-</span>
+                            <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.discomfortIndex} + ')'"></span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.discomfortComment}">계산 중...</p>
+                    </div>
+                    <div class="text-5xl text-red-200 opacity-50"><i class="fas fa-temperature-arrow-up"></i></div>
                 </div>
-            </div>
+            </a>
+
+            <!-- 꽃가루 농도 위험지수 카드 -->
+            <a href="http://www.nims.go.kr/?sub_num=1033" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-green-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-green-600 mb-1 flex items-center gap-1"><i class="fas fa-tree"></i> 꽃가루 농도</div>
+
+                        <!-- 계절에 따라 표시되는 정보가 다름 -->
+                        <div class="text-3xl font-bold text-gray-800 mb-2" th:if="${weather.oakPollenRisk != null}">
+                            <span th:text="${weather.getPollenRiskText(weather.oakPollenRisk)}"></span>
+                            <span class="text-xs font-normal text-gray-400 block mt-1">(참나무 기준)</span>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2" th:if="${weather.weedsPollenRisk != null}">
+                            <span th:text="${weather.getPollenRiskText(weather.weedsPollenRisk)}"></span>
+                            <span class="text-xs font-normal text-gray-400 block mt-1">(잡초류 기준)</span>
+                        </div>
+                        <div class="text-xl font-bold text-gray-400 mb-2" th:if="${weather.oakPollenRisk == null && weather.weedsPollenRisk == null}">
+                            제공기간 아님
+                        </div>
+
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.pollenComment}">데이터 확인 중...</p>
+                    </div>
+                    <div class="text-5xl text-green-200 opacity-50"><i class="fas fa-seedling"></i></div>
+                </div>
+            </a>
+
+
         </div>
     </div>
 
-    <!-- 9. 재난 안전 상황실 (기능 강화) -->
+    <!-- 9. 재난 안전 상황실 -->
     <div class="mb-10">
         <h3 class="text-xl font-bold text-white mb-4 px-1 flex items-center drop-shadow-md">
             <i class="fas fa-shield-alt text-red-400 mr-2 animate-pulse"></i>재난 안전 브리핑 (AI 분석)
@@ -470,7 +613,7 @@
                 </div>
             </div>
 
-            <!-- 지진 정보 (거리 표시 추가) -->
+            <!-- 지진 정보 -->
             <div th:if="${weather.hasEarthquake}" class="bg-yellow-50/95 backdrop-blur-sm border-l-8 border-yellow-500 p-6 rounded-r-2xl shadow-md flex items-start gap-5">
                 <div class="text-4xl text-yellow-600 mt-1"><i class="fas fa-rss"></i></div>
                 <div class="flex-1">
@@ -517,7 +660,7 @@
                 </div>
             </div>
 
-            <!-- 안전할 때 표시 (수정됨: 바로가기 버튼 추가) -->
+            <!-- 안전할 때 표시 -->
             <div th:if="${!weather.hasWarning && !weather.hasTyphoon && !weather.hasEarthquake}" class="bg-green-50/90 backdrop-blur-sm border-l-8 border-green-500 p-6 rounded-r-2xl shadow-md">
                 <div class="flex items-start gap-5">
                     <div class="text-4xl text-green-500 mt-1"><i class="fas fa-shield-check"></i></div>
@@ -551,56 +694,141 @@
         <p>AI Analysis Powered by Python & Scikit-learn</p>
     </div>
 
+    <!-- 맨 위로 가기 버튼 -->
+    <button id="backToTopBtn" onclick="scrollToTop()"
+            class="fixed bottom-8 right-8 z-50 bg-indigo-600 hover:bg-indigo-700 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center cursor-pointer transition-all duration-300 opacity-0 translate-y-10 pointer-events-none hover:-translate-y-1">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
 </div>
 
 <!-- [스크립트] Chart.js 그래프 생성 로직 -->
 <script th:inline="javascript">
-    // [NEW] 무료 AI 캐스터 (TTS) 스크립트 추가
     function speakBriefing() {
         const text = document.getElementById('aiBriefingText').innerText;
         if (!text) {
             alert('읽어줄 브리핑 내용이 없습니다.');
             return;
         }
-
-        // 브라우저 내장 TTS 기능 사용 (무료)
         const speech = new SpeechSynthesisUtterance();
         speech.text = text;
-        speech.lang = 'ko-KR'; // 한국어 설정
-        speech.rate = 1.0; // 속도 (0.1 ~ 10)
-        speech.pitch = 1.0; // 음높이 (0 ~ 2)
-        speech.volume = 1.0; // 볼륨
-
-        // 목소리 선택 (가능하다면 Google 한국어 보이스 선택)
+        speech.lang = 'ko-KR';
+        speech.rate = 1.0;
+        speech.pitch = 1.0;
+        speech.volume = 1.0;
         const voices = window.speechSynthesis.getVoices();
         const koVoice = voices.find(v => v.lang.includes('ko') || v.name.includes('Google 한국어'));
         if (koVoice) {
             speech.voice = koVoice;
         }
-
-        // 기존 음성이 있다면 취소하고 새로 재생
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(speech);
     }
 
-    // Chart.js 로직 (기존 유지)
+    // AI 매니저 접기/펼치기 기능
+    function toggleAiManager() {
+        const content = document.getElementById('aiManagerContent');
+        const icon = document.getElementById('aiToggleIcon');
+
+        // 현재 max-height가 0인지(접힌 상태인지) 확인하는 로직
+        // Tailwind 클래스 토글 방식 사용
+        if (content.classList.contains('max-h-0')) {
+            // 펼치기
+            content.classList.remove('max-h-0', 'opacity-0');
+            content.classList.add('max-h-[1000px]', 'opacity-100');
+            icon.classList.remove('rotate-180');
+        } else {
+            // 접기
+            content.classList.remove('max-h-[1000px]', 'opacity-100');
+            content.classList.add('max-h-0', 'opacity-0');
+            icon.classList.add('rotate-180');
+        }
+    }
+
+    // 맨 위로 가기 버튼 로직
+    const backToTopBtn = document.getElementById('backToTopBtn');
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopBtn.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+            backToTopBtn.classList.add('opacity-100', 'translate-y-0');
+        } else {
+            backToTopBtn.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+            backToTopBtn.classList.remove('opacity-100', 'translate-y-0');
+        }
+    });
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+        // 태양 아이콘 위치 업데이트 함수
+    function updateSunPosition() {
+        // Thymeleaf 변수 주입 (서버에서 계산된 진행률)
+        /*[# th:if="${weather.sunProgress != null}"]*/
+        let progress = /*[[${weather.sunProgress}]]*/ 0;
+        /*[/]*/
+        /*[# th:unless="${weather.sunProgress != null}"]*/
+        let progress = 0;
+        /*[/]*/
+
+        const pathLength = 251.2; // Circumference of semicircle r=40
+        const offset = pathLength - (pathLength * (progress / 100));
+
+        // 1. 프로그레스 바 채우기
+        const progressPath = document.getElementById('sunProgressPath');
+        if (progressPath) {
+            progressPath.style.strokeDashoffset = offset;
+        }
+
+        // 2. 아이콘 이동 (SVG Path 좌표 계산)
+        // Path: M 10 50 A 40 40 0 0 1 90 50
+        // Center: (50, 50), Radius: 40
+        // Angle goes from 180 deg (left) to 0 deg (right)
+        // Progress 0% -> 180 deg, 100% -> 0 deg
+
+        const angleDeg = 180 - (180 * (progress / 100));
+        const angleRad = angleDeg * (Math.PI / 180);
+
+        // x = cx + r * cos(a), y = cy - r * sin(a) (SVG y is down, so minus for up)
+        const cx = 50;
+        const cy = 50;
+        const r = 40;
+
+        const x = cx + r * Math.cos(angleRad); // cos(180)=-1 -> x=10
+        const y = cy - r * Math.sin(angleRad); // sin(180)=0 -> y=50, sin(90)=1 -> y=10
+
+        const sunGroup = document.getElementById('sunIconGroup');
+        if (sunGroup) {
+            sunGroup.style.transition = "transform 2s ease-out";
+            sunGroup.style.transformBox = "view-box"; // SVG 좌표계 기준
+            // transform 속성을 직접 변경하거나, x/y 좌표를 변경하지 않고 translate 사용
+            // 하지만 SVG transform은 origin이 중요함.
+            // 간단하게는 JS로 translate 문자열 생성
+            // 초기 위치가 0,0 이므로 x,y 만큼 이동
+
+            // 애니메이션을 위해 setTimeout 사용
+            setTimeout(() => {
+                sunGroup.setAttribute("transform", `translate(${x}, ${y})`);
+            }, 100);
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
-        // [중요] TTS 목소리 목록 로드 트리거 (크롬 등 일부 브라우저는 비동기로 로드됨)
         window.speechSynthesis.getVoices();
+
+        // Sun Position Update
+        updateSunPosition();
 
         const ctx = document.getElementById('weatherChart');
         if (!ctx) return;
-
         const labels = [];
         const tempPoints = [];
         const humidityPoints = [];
-
         /*[# th:each="item : ${weather.shortTermForecasts}"]*/
             labels.push(/*[[${#strings.substring(item.fcstTime, 0, 2)} + ':00']]*/ "12:00");
             tempPoints.push(/*[[${item.T1H}]]*/ 20);
             humidityPoints.push(/*[[${item.REH}]]*/ 50);
         /*[/]*/
-
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -609,7 +837,7 @@
                     {
                         label: '기온 (°C)',
                         data: tempPoints,
-                        borderColor: '#3b82f6', // blue-500
+                        borderColor: '#3b82f6',
                         backgroundColor: '#3b82f6',
                         yAxisID: 'y',
                         tension: 0.4,
@@ -621,7 +849,7 @@
                     {
                         label: '습도 (%)',
                         data: humidityPoints,
-                        borderColor: '#a855f7', // purple-500
+                        borderColor: '#a855f7',
                         backgroundColor: 'rgba(168, 85, 247, 0.1)',
                         yAxisID: 'y1',
                         tension: 0.4,

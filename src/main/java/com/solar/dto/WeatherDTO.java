@@ -32,6 +32,26 @@ public class WeatherDTO {
     private String VVV;         // 남북바람
     private String WAV;         // 파고
 
+    // ================= 꽃가루 농도 위험지수 필드 =================
+    // 값이 없을 경우(겨울철 등) null 또는 "0"으로 처리
+    private String oakPollenRisk;   // 참나무 (봄)
+    private String pinePollenRisk;  // 소나무 (봄)
+    private String weedsPollenRisk; // 잡초류 (가을)
+    private String pollenComment;   // 통합 코멘트 (가장 높은 등급 기준)
+
+    // ================= AI 체감온도/불쾌지수 분석 데이터 =================
+    private String sensibleTemp;    // 체감온도 (AI Regression 예측값)
+    private String discomfortIndex; // 불쾌지수 (계산값)
+    private String discomfortStage; // 불쾌지수 단계 (낮음/보통/높음/매우높음)
+    private String discomfortComment; // 불쾌지수 멘트
+
+    // ================= [NEW] 일출/일몰 및 달 정보 (Sun/Moon Cycle) =================
+    private String sunrise;      // 일출 시간 (예: 05:30)
+    private String sunset;       // 일몰 시간 (예: 19:40)
+    private double sunProgress;  // 태양/달 이동 진행률 (0.0 ~ 100.0%)
+    private boolean isDayTime;   // 현재 낮 여부 (true: 낮/태양, false: 밤/달)
+    private String moonPhase;    // 달의 위상 (예: Full Moon, New Moon) - 텍스트 표시용
+
     // ================= 초단기예보 (향후 6시간) =================
     private List<ShortTermForecast> shortTermForecasts = new ArrayList<>();
 

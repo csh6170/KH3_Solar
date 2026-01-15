@@ -2,16 +2,28 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LinearRegression
 import uvicorn
 import random
+import numpy as np
+from contextlib import asynccontextmanager # lifespan을 위한 모듈
 
-# 1. FastAPI 앱 생성
-app = FastAPI()
 
-# 2. 학습 데이터 준비 (실제로는 CSV 파일 등에서 로드하지만, 학습용으로 직접 생성)
+# lifespan: 앱 시작/종료 시 실행될 로직
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀🚀🚀🚀🚀 AI Server Application Started!")# 앱 시작 시 실행
+    yield
+    print("🛑🛑🛑🛑🛑 프로그램 종료: AI Server Application Shutdown.") # 앱 종료 시 실행
+
+# FastAPI 앱 생성
+app = FastAPI(lifespan=lifespan)  # ✅ lifespan 연결 완료
+
+# ================= 1. 옷차림 추천 모델 (분류 - Classification) =================
+# 학습 데이터 준비 (실제로는 CSV 파일 등에서 로드하지만, 학습용으로 직접 생성)
 # 0:맑음(강수없음), 1:비/눈
 # Label: 추천 옷차림
-data = {
+data_cloth = {
     'temp': [30, 28, 25, 24, 20, 18, 15, 12, 10, 5, 0, -5,
              30, 25, 10, 0], # 기온
     'rain': [0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0,  0,
@@ -37,21 +49,55 @@ data = {
 }
 
 # 3. 모델 학습 (서버 시작 시 1회 실행)
-df = pd.DataFrame(data)
-X = df[['temp', 'rain']]
-y = df['label']
+df_cloth = pd.DataFrame(data_cloth)
+X_cloth = df_cloth[['temp', 'rain']]
+y_cloth = df_cloth['label']
 
-model = DecisionTreeClassifier()
-model.fit(X, y)
-print("✨✨✨✨✨ AI 모델 학습 완료! (Decision Tree)✨✨✨✨✨")
-print("==== IntelliJ를 실행하세요 ====")
+model_cloth = DecisionTreeClassifier()
+model_cloth.fit(X_cloth, y_cloth)
 
-# 4. 요청 데이터 구조 정의 (DTO 역할)
+# ================= 2. 체감온도 예측 모델 (회귀 - Regression) =================
+# 설명: 기온(Temp), 습도(Hum), 풍속(Wind)을 입력받아 '체감온도(Sensible Temp)'를 예측
+# 선형 회귀 학습을 위해 가상의 데이터셋을 생성합니다. (실제 공식을 근사하게 학습)
+
+# 학습 데이터 생성 함수 (공식 기반 시뮬레이션 데이터)
+def generate_sensible_temp_data(n_samples=1000):
+    temps = np.random.uniform(-20, 35, n_samples) # -20도 ~ 35도
+    hums = np.random.uniform(0, 100, n_samples)   # 습도 0~100%
+    winds = np.random.uniform(0, 20, n_samples)   # 풍속 0~20m/s
+    targets = []
+
+    for t, h, w in zip(temps, hums, winds):
+        # 여름철 (기온 높음): 습도가 높으면 더 덥게 느껴짐 (Heat Index 유사 로직)
+        if t >= 20:
+            sensible = t + (h / 100) * 0.1 * t # 습도가 높으면 체감온도 상승
+        # 겨울철 (기온 낮음): 바람이 불면 더 춥게 느껴짐 (Wind Chill 유사 로직)
+        else:
+            sensible = t - (w * 0.7) # 바람이 불면 체감온도 하강
+        
+        targets.append(sensible)
+    
+    return pd.DataFrame({'temp': temps, 'hum': hums, 'wind': winds, 'target': targets})
+
+# 데이터 생성 및 학습
+df_sensible = generate_sensible_temp_data()
+X_sensible = df_sensible[['temp', 'hum', 'wind']]
+y_sensible = df_sensible['target']
+
+model_sensible = LinearRegression() # 선형 회귀 모델
+model_sensible.fit(X_sensible, y_sensible)
+
+print("✨✨ AI 모델 2종 학습 완료! (옷차림:DT, 체감온도:LinearRegression)✨✨")
+
+
+
+# ================= API 엔드포인트 정의 =================
+
+# 1. 옷차림 예측 요청 DTO
 class WeatherRequest(BaseModel):
     temp: float
     pty: str  # 기상청 코드 ("0", "1", "비" 등)
 
-# 5. 예측 API 엔드포인트
 @app.post("/predict")
 def predict_outfit(req: WeatherRequest):
     # 데이터 전처리: 기상청 PTY 코드를 0(맑음) 또는 1(비/눈)로 변환
@@ -60,11 +106,31 @@ def predict_outfit(req: WeatherRequest):
         rain_status = 1
 
     # 예측 수행
-    prediction = model.predict([[req.temp, rain_status]])
+    prediction = model_cloth.predict([[req.temp, rain_status]])
     result_text = prediction[0]
 
     # 파이썬 서버임을 티내기 위해 접두어 추가
     return {"recommendation": f"📌 {result_text}"}
+
+
+# 2. 체감온도 예측 요청 DTO
+class SensibleRequest(BaseModel):
+    temp: float
+    hum: float
+    wind: float
+
+@app.post("/sensible")
+def predict_sensible_temp(req: SensibleRequest):
+    # 입력된 데이터로 체감온도 예측
+    # 입력값: [[기온, 습도, 풍속]]
+    predicted_value = model_sensible.predict([[req.temp, req.hum, req.wind]])
+    
+    # 소수점 1자리까지 반올림
+    result = round(predicted_value[0], 1)
+    
+    return {"sensible_temp": result}
+
+
 
 
 # ================= AI 기상 캐스터 (브리핑 생성) =================
@@ -78,11 +144,6 @@ class BriefingRequest(BaseModel):
 
 @app.post("/briefing")
 def generate_briefing(req: BriefingRequest):
-    # 1. LLM(OpenAI/Gemini) API를 사용한다면 여기서 호출하면 됩니다.
-    # prompt = f"현재 날씨는 기온 {req.temp}도, 하늘은 {req.sky}..."
-    # response = openai.ChatCompletion.create(...)
-    
-    # 2. [현재 구현] 랜덤 템플릿 엔진 (비용 없이 LLM 흉내내기)
     
     # 기본 인사말
     intro = random.choice([
@@ -190,9 +251,6 @@ def recommend_music(req: DjRequest):
         "videoId": selected["id"],
         "comment": f"[AI DJ] {selected['comment']}"
     }
-
-
-
 
 
 # 서버 실행
