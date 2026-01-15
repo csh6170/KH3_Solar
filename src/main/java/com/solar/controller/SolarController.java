@@ -92,7 +92,14 @@ public class SolarController {
                           @RequestParam double lon,
                           Model model) {
 
-        System.out.println("===== ⚡ AI 발전량 예측 시뮬레이션 (JSON 연동) =====");
+        System.out.println("===== ⚡ AI 발전량 예측 시뮬레이션 =====");
+
+        // 1. 현재 실행 경로(프로젝트 루트)를 가져와서 파일 구분자(\ 또는 /)와 함께 연결합니다.
+        String projectPath = System.getProperty("user.dir");
+        String scriptPath = projectPath + java.io.File.separator + "predict.py";
+
+        // [확인용] 실제 어떤 경로로 실행되는지 콘솔에 출력해줍니다.
+        System.out.println("🔍 실행 중인 파이썬 스크립트 경로: " + scriptPath);
 
         double rainVal = parseWeatherValue(rain);
         double snowVal = parseWeatherValue(snow);
@@ -104,7 +111,7 @@ public class SolarController {
             // 1. Python 스크립트 실행
             ProcessBuilder pb = new ProcessBuilder(
                     "python",
-                    "G:\\TeamProject\\SolarProject\\backend\\solar\\predict.py", // ✅ 절대 경로 유지
+                    scriptPath, // ✅ 절대 경로 유지
                     String.valueOf(temp),
                     String.valueOf(cloud),
                     String.valueOf(wind),
