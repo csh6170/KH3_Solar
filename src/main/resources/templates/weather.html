@@ -88,9 +88,17 @@
                 <i class="fas fa-location-dot text-blue-500"></i>
                 <span th:text="${currentRegionName}">지역명</span>
             </h2>
-            <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
-                <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
+            <div class="flex items-end gap-3 justify-center md:justify-start">
+                <!-- 현재 온도 -->
+                <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
+                    <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
+                </div>
+                <!-- 체감 온도 -->
+                <div class="mb-5 text-gray-500 font-bold bg-gray-100 px-3 py-1 rounded-xl shadow-inner">
+                    <i class="fas fa-user-check text-indigo-500 mr-1"></i>체감 <span th:text="${weather.sensibleTemp}">-</span>°
+                </div>
             </div>
+            <!-- 날씨 상태 및 최저/최고 기온 -->
             <p class="text-xl font-medium text-gray-600">
                 <span th:text="${weather.SKY}">-</span>
                 <span th:if="${weather.PTY != '강수없음'}" th:text="'/ ' + ${weather.PTY}"></span>
@@ -102,7 +110,7 @@
             </div>
         </div>
 
-        <!-- 날씨 아이콘 (애니메이션 & 그림자 강화) -->
+        <!-- 날씨 아이콘 -->
         <div class="mt-8 md:mt-0 transform hover:scale-110 transition duration-300">
             <i th:if="${weather.PTY == '비'}" class="fas fa-cloud-showers-heavy text-9xl text-blue-500 animate-bounce drop-shadow-xl"></i>
             <i th:if="${weather.PTY == '눈'}" class="fas fa-snowflake text-9xl text-sky-300 animate-spin-slow drop-shadow-xl"></i>
@@ -417,13 +425,13 @@
         </div>
     </div>
 
-    <!-- 8. 생활 기상 지수 & 미세먼지 -->
+    <!-- 8. 생활 기상 지수 -->
     <div class="mb-10">
         <h3 class="text-xl font-bold text-white mb-4 px-1 flex items-center drop-shadow-md">
             <i class="fas fa-heart text-pink-300 mr-2"></i>생활 및 대기 정보
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- 자외선 -->
+            <!-- 자외선 카드 -->
             <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-orange-100/50 flex items-center justify-between hover:shadow-lg transition">
                 <div>
                     <div class="text-sm font-bold text-orange-500 mb-1 flex items-center gap-1"><i class="fas fa-sun"></i> 자외선 지수</div>
@@ -436,7 +444,7 @@
                 <div class="text-5xl text-orange-200 opacity-50"><i class="fas fa-umbrella-beach"></i></div>
             </div>
 
-            <!-- [REPLACED] 미세먼지 카드 (대기확산 대체) -->
+            <!-- 미세먼지 카드 -->
             <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-gray-100/50 flex items-center justify-between hover:shadow-lg transition">
                 <div>
                     <div class="text-sm font-bold text-gray-600 mb-1 flex items-center gap-1"><i class="fas fa-smog"></i> 미세먼지(PM10)</div>
@@ -451,10 +459,23 @@
                     <i class="fas fa-mask"></i>
                 </div>
             </div>
+
+            <!-- 불쾌지수 카드 -->
+            <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-red-100/50 flex items-center justify-between hover:shadow-lg transition">
+                <div>
+                    <div class="text-sm font-bold text-red-500 mb-1 flex items-center gap-1"><i class="fas fa-tired"></i> 불쾌지수</div>
+                    <div class="text-3xl font-bold text-gray-800 mb-2">
+                        <span th:text="${weather.discomfortStage}">-</span>
+                        <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.discomfortIndex} + ')'"></span>
+                    </div>
+                    <p class="text-sm text-gray-500 leading-tight" th:text="${weather.discomfortComment}">계산 중...</p>
+                </div>
+                <div class="text-5xl text-red-200 opacity-50"><i class="fas fa-temperature-arrow-up"></i></div>
+            </div>
         </div>
     </div>
 
-    <!-- 9. 재난 안전 상황실 (기능 강화) -->
+    <!-- 9. 재난 안전 상황실 -->
     <div class="mb-10">
         <h3 class="text-xl font-bold text-white mb-4 px-1 flex items-center drop-shadow-md">
             <i class="fas fa-shield-alt text-red-400 mr-2 animate-pulse"></i>재난 안전 브리핑 (AI 분석)

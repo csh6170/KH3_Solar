@@ -32,6 +32,12 @@ public class WeatherDTO {
     private String VVV;         // 남북바람
     private String WAV;         // 파고
 
+    // ================= AI 체감온도/불쾌지수 분석 데이터 =================
+    private String sensibleTemp;    // 체감온도 (AI Regression 예측값)
+    private String discomfortIndex; // 불쾌지수 (계산값)
+    private String discomfortStage; // 불쾌지수 단계 (낮음/보통/높음/매우높음)
+    private String discomfortComment; // 불쾌지수 멘트
+
     // ================= 초단기예보 (향후 6시간) =================
     private List<ShortTermForecast> shortTermForecasts = new ArrayList<>();
 

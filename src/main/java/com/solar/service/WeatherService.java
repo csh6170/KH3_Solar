@@ -47,21 +47,25 @@ public class WeatherService {
     public WeatherDTO getWeather(int nx, int ny, String areaNo, int stnId, double userLat, double userLon) {
         WeatherDTO dto = new WeatherDTO();
         try {
-            fetchVilageForecast(dto, nx, ny);
+            fetchVilageForecast(dto, nx, ny);       // 1. 단기예보
             // [FIX] 최저(TMN) 또는 최고(TMX) 기온이 누락되었다면, 02:00 기준 데이터로 보완 조회
             if (dto.getTMN() == null || dto.getTMX() == null) {
-                fetchDailyTempRange(dto, nx, ny); // 보완 로직 호출
+                fetchDailyTempRange(dto, nx, ny);   // 보완 로직 호출
             }
+            fetchUltraSrtForecast(dto, nx, ny);     // 2. 초단기예보
+            fetchLivingWeather(dto, areaNo);        // 3. 생활지수 (자외선)
 
-            fetchUltraSrtForecast(dto, nx, ny);
-            fetchLivingWeather(dto, areaNo);
-            fetchFineDust(dto, "서울"); // 기본값 서울, 추후 동적으로 변경 가능
-            fetchWeatherWarning(dto, stnId);
+            fetchSensibleTemp(dto);                 // 4. 체감온도 예측 (AI 서버 요청)
+            calculateDiscomfortIndex(dto);          // 5. 불쾌지수 계산 (자체 로직)
+
+            fetchFineDust(dto, "서울");     // 6. 미세먼지 (고정: 서울)
+            fetchWeatherWarning(dto, stnId);        // 7. 기상특보
 
             // 사용자 위치 기반 거리 계산 및 안전 분석 포함
-            fetchEarthquake(dto, userLat, userLon);
-            fetchTyphoon(dto, userLat, userLon);
+            fetchEarthquake(dto, userLat, userLon); // 8. 지진 정보
+            fetchTyphoon(dto, userLat, userLon);    // 9. 태풍 정보
 
+            // 10. AI 기능
             String recommendation = clothingService.recommendOutfit(dto.getTMP(), dto.getPTY(), dto.getWSD());
             String icon = clothingService.getOutfitIcon(dto.getTMP());
             dto.setClothingRecommendation(recommendation);
@@ -75,6 +79,78 @@ public class WeatherService {
             log.error("날씨 통합 조회 실패", e);
         }
         return dto;
+    }
+
+    // ================= AI 체감온도 예측 요청 =================
+    private void fetchSensibleTemp(WeatherDTO dto) {
+        try {
+            // 현재 기온, 습도, 풍속 데이터 확보
+            String tmpStr = dto.getTMP(); // 기온
+            String rehStr = dto.getREH(); // 습도
+            String wsdStr = dto.getWSD(); // 풍속
+
+            if (tmpStr != null && rehStr != null && wsdStr != null) {
+                RestTemplate restTemplate = new RestTemplate();
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("temp", Double.parseDouble(tmpStr));
+                requestBody.put("hum", Double.parseDouble(rehStr));
+                requestBody.put("wind", Double.parseDouble(wsdStr));
+
+                @SuppressWarnings("unchecked")
+                Map<String, Double> response = restTemplate.postForObject(
+                        AI_SERVER_URL + "/sensible",
+                        requestBody,
+                        Map.class
+                );
+
+                if (response != null && response.containsKey("sensible_temp")) {
+                    dto.setSensibleTemp(String.valueOf(response.get("sensible_temp")));
+                } else {
+                    dto.setSensibleTemp(dto.getTMP()); // 실패 시 현재 기온과 동일하게 설정
+                }
+            } else {
+                dto.setSensibleTemp("-");
+            }
+        } catch (Exception e) {
+            log.warn("체감온도 AI 예측 실패: {}", e.getMessage());
+            dto.setSensibleTemp(dto.getTMP()); // 기본값
+        }
+    }
+
+    // ================= 불쾌지수(DI) 계산 로직 =================
+    // 공식: DI = 0.81 * T + 0.01 * H * (0.99 * T - 14.3) + 46.3
+    // T: 기온(°C), H: 상대습도(%)
+    // 단계: 매우높음(80 이상), 높음(75 이상), 보통(68 이상), 낮음(68 미만)
+    private void calculateDiscomfortIndex(WeatherDTO dto) {
+        try {
+            if (dto.getTMP() == null || dto.getREH() == null) return;
+
+            double t = Double.parseDouble(dto.getTMP());
+            double h = Double.parseDouble(dto.getREH());
+
+            double di = 0.81 * t + 0.01 * h * (0.99 * t - 14.3) + 46.3;
+
+            dto.setDiscomfortIndex(String.format("%.1f", di));
+
+            // 단계 구분
+            if (di >= 80) {
+                dto.setDiscomfortStage("매우높음");
+                dto.setDiscomfortComment("전원 불쾌감을 느낍니다. 다툼 주의! 🤬");
+            } else if (di >= 75) {
+                dto.setDiscomfortStage("높음");
+                dto.setDiscomfortComment("50% 정도 불쾌감을 느낍니다. 😓");
+            } else if (di >= 68) {
+                dto.setDiscomfortStage("보통");
+                dto.setDiscomfortComment("불쾌감이 나타나기 시작합니다. 😐");
+            } else {
+                dto.setDiscomfortStage("낮음");
+                dto.setDiscomfortComment("쾌적한 날씨입니다. 상쾌해요! 😄");
+            }
+
+        } catch (Exception e) {
+            log.warn("불쾌지수 계산 실패");
+            dto.setDiscomfortStage("-");
+        }
     }
 
     // ================= 일일 최저/최고 기온 보완 로직 =================
