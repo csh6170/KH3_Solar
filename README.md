@@ -115,11 +115,11 @@
 
 ## 👨‍💻 팀원 및 역할 (Team Members)
 
-* 최성호, [Solar AI Engine & Core Logic]
+* 최성호 [Solar AI Engine & Core Logic]
    * Scikit-learn(Random Forest)을 활용한 태양광 발전량 예측 모델 구축
    * Python 예측 엔진과 Spring Boot(Java) 간의 ProcessBuilder 연동
    * 발전량 기반 경제성 분석(전기요금 절약액) 알고리즘 구현
-* 조보근,"[Full-stack & Weather Safety Platform]
+* 조보근 [Full-stack & Weather Safety Platform]
    * Tailwind CSS 기반의 반응형 대시보드 UI/UX 설계 및 구현
    * 기상청(단기예보, 지진, 태풍) 및 에어코리아 API 연동
    * AI Caster 브리핑, 옷차림 및 음악 추천 등 라이프스타일 큐레이션 로직 구현
