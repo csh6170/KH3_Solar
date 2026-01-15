@@ -6,6 +6,15 @@ from sklearn.linear_model import LinearRegression
 import uvicorn
 import random
 import numpy as np
+from contextlib import asynccontextmanager # lifespan을 위한 모듈
+
+
+# lifespan: 앱 시작/종료 시 실행될 로직
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀🚀🚀🚀🚀 AI Server Application Started!")# 앱 시작 시 실행
+    yield
+    print("🛑🛑🛑🛑🛑 프로그램 종료: AI Server Application Shutdown.") # 앱 종료 시 실행
 
 # FastAPI 앱 생성
 app = FastAPI()
@@ -78,7 +87,7 @@ y_sensible = df_sensible['target']
 model_sensible = LinearRegression() # 선형 회귀 모델
 model_sensible.fit(X_sensible, y_sensible)
 
-print("✨✨✨✨✨ AI 모델 2종 학습 완료! (옷차림:DT, 체감온도:LinearRegression) ✨✨✨✨✨")
+print("✨✨ AI 모델 2종 학습 완료! (옷차림:DT, 체감온도:LinearRegression)✨✨")
 
 
 
