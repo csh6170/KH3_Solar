@@ -30,30 +30,35 @@ public class WeatherService {
     // [Optimization] ObjectMapper를 매번 생성하지 않고 재사용
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private final String API_KEY = "eaab499069c4dc1e503f0de460f8fd9add7a1dc08fd28a6b6a2074bd0d2e3162";
+    private final String API_KEY = "eaab499069c4dc1e503f0de460f8fd9add7a1dc08fd28a6b6a2074bd0d2e3162";// 공공데이터포털에서 발급받은 서비스키
 
     // API URL 목록
-    private final String URL_VILAGE = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
-    private final String URL_ULTRA  = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst";
-    private final String URL_UV     = "http://apis.data.go.kr/1360000/LivingWthrIdxServiceV4/getUVIdxV4";
-    private final String URL_WARN   = "http://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList";
-    private final String URL_EQK    = "http://apis.data.go.kr/1360000/EqkInfoService/getEqkMsgList";
-    private final String URL_TYPHOON= "http://apis.data.go.kr/1360000/TyphoonInfoService/getTyphoonInfoList";
-    private final String URL_DUST   = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty";
+    private final String URL_VILAGE = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";// 동네예보조회
+    private final String URL_ULTRA  = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst";// 초단기예보조회
+    private final String URL_UV     = "http://apis.data.go.kr/1360000/LivingWthrIdxServiceV4/getUVIdxV4";// 자외선지수조회
+    private final String URL_WARN   = "http://apis.data.go.kr/1360000/WthrWrnInfoService/getWthrWrnList";// 기상특보조회
+    private final String URL_EQK    = "http://apis.data.go.kr/1360000/EqkInfoService/getEqkMsgList";// 지진정보조회
+    private final String URL_TYPHOON= "http://apis.data.go.kr/1360000/TyphoonInfoService/getTyphoonInfoList";// 태풍정보조회
+    private final String URL_DUST   = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty";// 미세먼지정보조회
 
-    private final String AI_SERVER_URL = "http://localhost:5000";
+    private final String AI_SERVER_URL = "http://localhost:5000";// AI 캐스터 및 DJ 서버 URL
 
-    // 파라미터 업데이트 (lat, lon 추가)
+    // =========== 메인 통합 조회 메서드 ===========
     public WeatherDTO getWeather(int nx, int ny, String areaNo, int stnId, double userLat, double userLon) {
         WeatherDTO dto = new WeatherDTO();
         try {
             fetchVilageForecast(dto, nx, ny);
+            // [FIX] 최저(TMN) 또는 최고(TMX) 기온이 누락되었다면, 02:00 기준 데이터로 보완 조회
+            if (dto.getTMN() == null || dto.getTMX() == null) {
+                fetchDailyTempRange(dto, nx, ny); // 보완 로직 호출
+            }
+
             fetchUltraSrtForecast(dto, nx, ny);
             fetchLivingWeather(dto, areaNo);
             fetchFineDust(dto, "서울"); // 기본값 서울, 추후 동적으로 변경 가능
             fetchWeatherWarning(dto, stnId);
 
-            // [NEW] 사용자 위치 기반 거리 계산 및 안전 분석 포함
+            // 사용자 위치 기반 거리 계산 및 안전 분석 포함
             fetchEarthquake(dto, userLat, userLon);
             fetchTyphoon(dto, userLat, userLon);
 
@@ -72,7 +77,43 @@ public class WeatherService {
         return dto;
     }
 
-    // ================= [NEW] 지진 거리 계산 및 안전 분석 =================
+    // ================= 일일 최저/최고 기온 보완 로직 =================
+    private void fetchDailyTempRange(WeatherDTO dto, int nx, int ny) {
+        try {
+            // 오늘 날짜의 02:00 데이터 요청 (이때는 항상 최저/최고 기온이 포함됨)
+            String baseDate = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String baseTime = "0200";
+
+            URI uri = buildUri(URL_VILAGE, baseDate, baseTime, nx, ny);
+            String json = new RestTemplate().getForObject(uri, String.class);
+            JsonNode root = mapper.readTree(json);
+
+            // 만약 정상 응답이 아니라면 종료
+            if (!"00".equals(root.path("response").path("header").path("resultCode").asText())) return;
+
+            JsonNode items = root.path("response").path("body").path("items").path("item");
+            for (JsonNode item : items) {
+                String category = item.path("category").asText();
+                String fcstDate = item.path("fcstDate").asText();
+                String value = item.path("fcstValue").asText();
+
+                // 오늘 날짜에 해당하는 값만 추출
+                if (fcstDate.equals(baseDate)) {
+                    // 비어있는 값만 채워넣기 (이미 있으면 건드리지 않음)
+                    if ("TMN".equals(category) && dto.getTMN() == null) {
+                        dto.setTMN(value);
+                    }
+                    if ("TMX".equals(category) && dto.getTMX() == null) {
+                        dto.setTMX(value);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("일일 기온 범위 보완 조회 실패: {}", e.getMessage());
+        }
+    }
+
+    // ================= 지진 거리 계산 및 안전 분석 =================
     private void fetchEarthquake(WeatherDTO dto, double userLat, double userLon) {
         try {
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
@@ -133,7 +174,7 @@ public class WeatherService {
         }
     }
 
-    // [AI Logic] 지진 안전도 분석기
+    // ========== [AI Logic] 지진 안전도 분석기 ===========
     private String analyzeEarthquakeSafety(double magnitude, double distanceKm) {
         if (distanceKm > 500) return "거리가 멀어 영향이 거의 없습니다. 안심하세요.";
 
@@ -148,7 +189,7 @@ public class WeatherService {
         }
     }
 
-    // ================= [NEW] 태풍 거리 계산 및 안전 분석 =================
+    // ================= 태풍 거리 계산 및 안전 분석 =================
     private void fetchTyphoon(WeatherDTO dto, double userLat, double userLon) {
         try {
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
@@ -205,7 +246,7 @@ public class WeatherService {
         }
     }
 
-    // [AI Logic] 태풍 안전도 분석기
+    // =========== [AI Logic] 태풍 안전도 분석기 ===========
     private String analyzeTyphoonSafety(double windSpeed, double distanceKm) {
         if (distanceKm > 800) return "아직 거리가 멉니다. 태풍 정보를 주시하세요.";
 
@@ -217,7 +258,7 @@ public class WeatherService {
         }
     }
 
-    // [Utility] 하버사인 공식 (두 좌표 사이의 거리 계산, 단위: km)
+    // =========== [Utility] 하버사인 공식 (두 좌표 사이의 거리 계산, 단위: km) ===========
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // 지구의 반지름 (km)
         double latDistance = Math.toRadians(lat2 - lat1);

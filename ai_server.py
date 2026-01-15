@@ -43,7 +43,8 @@ y = df['label']
 
 model = DecisionTreeClassifier()
 model.fit(X, y)
-print("✨ AI 모델 학습 완료! (Decision Tree)")
+print("✨✨✨✨✨ AI 모델 학습 완료! (Decision Tree)✨✨✨✨✨")
+
 
 # 4. 요청 데이터 구조 정의 (DTO 역할)
 class WeatherRequest(BaseModel):
