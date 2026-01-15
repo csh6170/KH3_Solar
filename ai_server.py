@@ -44,7 +44,7 @@ y = df['label']
 model = DecisionTreeClassifier()
 model.fit(X, y)
 print("✨✨✨✨✨ AI 모델 학습 완료! (Decision Tree)✨✨✨✨✨")
-
+print("==== IntelliJ를 실행하세요 ====")
 
 # 4. 요청 데이터 구조 정의 (DTO 역할)
 class WeatherRequest(BaseModel):
@@ -64,7 +64,7 @@ def predict_outfit(req: WeatherRequest):
     result_text = prediction[0]
 
     # 파이썬 서버임을 티내기 위해 접두어 추가
-    return {"recommendation": f"[AI] {result_text}"}
+    return {"recommendation": f"📌 {result_text}"}
 
 
 # ================= AI 기상 캐스터 (브리핑 생성) =================
@@ -86,50 +86,49 @@ def generate_briefing(req: BriefingRequest):
     
     # 기본 인사말
     intro = random.choice([
-        "안녕하세요! AI 기상캐스터입니다. 🎤",
-        "반갑습니다. 오늘의 날씨를 전해드릴게요! 🌈",
-        "오늘 하루도 힘차게 시작해볼까요? 날씨 브리핑입니다. 📢"
+        "🎤 안녕하세요! AI 기상캐스터입니다.",
+        "🌈 반갑습니다. 오늘의 날씨를 전해드릴게요!",
+        "📢 오늘 하루도 힘차게 시작해볼까요? 날씨 브리핑입니다."
     ])
 
     # 날씨 상태 묘사
     status_desc = ""
     if req.pty not in ["0", "강수없음", "정보 없음"]:
         status_desc = random.choice([
-            f"현재 밖에는 {req.pty}가 내리고 있어요. 우산 꼭 챙기셔야겠어요! ☔",
-            f"아이고, {req.pty} 소식이 있네요. 빗길/눈길 조심하세요! 🌧️",
-            f"지금 {req.pty}가 오고 있습니다. 실내 활동을 추천드려요. 🏠"
+            f"☔ 현재 밖에는 {req.pty}가 내리고 있어요. 우산 꼭 챙기셔야겠어요!",
+            f"🌧️ 아이고, {req.pty} 소식이 있네요. 빗길/눈길 조심하세요!",
+            f"🏠 지금 {req.pty}가 오고 있습니다. 실내 활동을 추천드려요."
         ])
     elif req.sky == "맑음":
         status_desc = random.choice([
-            "하늘이 아주 맑고 깨끗합니다! 산책하기 딱 좋은 날씨예요. ☀️",
-            "파란 하늘이 기분까지 상쾌하게 만들어주네요. 썬글라스는 어떠세요? 😎",
-            "햇살이 가득한 하루입니다. 비타민D 충전하세요! 🌞"
+            "☀️ 하늘이 아주 맑고 깨끗합니다! 산책하기 딱 좋은 날씨예요.",
+            "😎 파란 하늘이 기분까지 상쾌하게 만들어주네요. 썬글라스는 어떠세요?",
+            "🌞 햇살이 가득한 하루입니다. 비타민D 충전하세요!"
         ])
     elif req.sky == "구름많음":
         status_desc = random.choice([
-            "구름이 조금 지나가고 있어요. 덥지도 춥지도 않은 날씨네요. ☁️",
-            "하늘에 구름이 그림처럼 떠 있네요. 운치 있는 하루입니다. 🌥️"
+            "☁️ 구름이 조금 지나가고 있어요. 덥지도 춥지도 않은 날씨네요.",
+            "🌥️ 하늘에 구름이 그림처럼 떠 있네요. 운치 있는 하루입니다."
         ])
     else: # 흐림
         status_desc = random.choice([
-            "하늘 빛이 조금 흐리네요. 기분만은 밝게 가져가세요! ☁️",
-            "구름이 잔뜩 꼈어요. 혹시 모르니 작은 우산 하나 챙길까요? 🌂"
+            "☁️ 하늘 빛이 조금 흐리네요. 기분만은 밝게 가져가세요!",
+            "☂️ 구름이 잔뜩 꼈어요. 혹시 모르니 작은 우산 하나 챙길까요?"
         ])
 
     # 기온 코멘트
     temp_val = float(req.temp)
     temp_desc = ""
     if temp_val > 28:
-        temp_desc = "푹푹 찌는 더위입니다. 시원한 물 많이 드세요! 🧊"
+        temp_desc = "🧊 푹푹 찌는 더위입니다. 시원한 물 많이 드세요!"
     elif temp_val > 20:
-        temp_desc = "활동하기 참 좋은 포근한 기온이에요. 😊"
+        temp_desc = "😊 활동하기 참 좋은 포근한 기온이에요."
     elif temp_val > 10:
-        temp_desc = "약간 쌀쌀할 수 있으니 겉옷을 챙기시면 좋겠어요. 🧥"
+        temp_desc = "🧥 약간 쌀쌀할 수 있으니 겉옷을 챙기시면 좋겠어요."
     else:
-        temp_desc = "공기가 많이 차갑습니다. 감기 조심하세요! 🧣"
-
+        temp_desc = "🧣 공기가 많이 차갑습니다. 감기 조심하세요!"
     # 최종 대본 조합
-    full_script = f"{intro} {status_desc} 현재 기온은 {req.temp}도이며, 강수 확률은 {req.pop}%입니다. {temp_desc}"
+    full_script = f"{intro}<br>{status_desc}<br>✅ 현재 기온은 {req.temp}도이며, 강수 확률은 {req.pop}%입니다.<br>{temp_desc}"
     
     return {"script": full_script}
 

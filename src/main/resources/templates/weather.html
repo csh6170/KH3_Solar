@@ -115,31 +115,75 @@
         </div>
     </div>
 
-    <!-- 3. AI 기상 캐스터 브리핑 (무료 TTS 적용) -->
-    <div class="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-xl border-l-8 border-indigo-500 mb-8 flex flex-col md:flex-row gap-6 relative overflow-hidden">
-        <div class="flex-shrink-0 flex flex-col items-center justify-center min-w-[100px]">
-            <div class="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center text-4xl mb-2 shadow-inner border-2 border-indigo-200">
-                <span class="animate-bounce" style="animation-duration: 2s;">👩‍💼</span>
+    <!-- 3. [통합] AI 라이프스타일 매니저 (브리핑 + 옷차림 추천) -->
+    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden mb-8 border border-white/50">
+        <!-- 상단 헤더 (공통) -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl shadow-inner">
+                    🤖
+                </div>
+                <h3 class="text-lg font-bold text-white tracking-wide">AI 라이프스타일 매니저</h3>
             </div>
-            <span class="text-xs font-extrabold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded-full">AI Caster</span>
+            <button onclick="speakBriefing()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-bold transition active:scale-95 backdrop-blur-sm border border-white/10">
+                <i class="fas fa-volume-up"></i> 브리핑 듣기
+            </button>
         </div>
-        <div class="flex-1 z-10 py-2">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-bold text-gray-800 flex items-center">
-                    AI 날씨 브리핑 <span class="ml-3 text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full animate-pulse shadow-sm">LIVE ON AIR</span>
-                </h3>
 
-                <!-- TTS 듣기 버튼 -->
-                <button onclick="speakBriefing()" class="flex items-center gap-2 bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-bold hover:bg-indigo-200 transition active:scale-95">
-                    <i class="fas fa-volume-up"></i> 날씨 듣기
-                </button>
+        <!-- 컨텐츠 영역 (좌우 분할) -->
+        <div class="flex flex-col md:flex-row">
+            <!-- 왼쪽: AI 기상 캐스터 브리핑 -->
+            <div class="flex-1 p-6 md:p-8 border-b md:border-b-0 md:border-r border-gray-100 bg-indigo-50/30">
+                <div class="flex gap-4 items-start">
+                    <div class="flex-shrink-0 text-center">
+                        <div class="w-16 h-16 rounded-full bg-white border-2 border-indigo-200 flex items-center justify-center text-3xl shadow-sm mb-2">
+                            👩‍💼
+                        </div>
+                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded-full">Caster</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-microphone-alt"></i> 오늘의 날씨 브리핑
+                        </h4>
+                        <div class="bg-white p-4 rounded-xl rounded-tl-none border border-indigo-100 shadow-sm relative">
+                            <p id="aiBriefingText" class="text-gray-700 leading-relaxed font-medium text-sm md:text-base" th:utext="${weather.aiBriefing}">
+                                캐스터가 대본을 준비중입니다...
+                            </p>
+                            <!-- 말풍선 꼬리 -->
+                            <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-indigo-100 transform -rotate-45"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="bg-gray-50 p-5 rounded-2xl text-gray-700 leading-relaxed font-medium border border-gray-200 shadow-inner relative">
-                <i class="fas fa-quote-left text-gray-300 absolute top-3 left-3"></i>
-                <!-- id="aiBriefingText" 추가하여 자바스크립트에서 읽을 수 있게 함 -->
-                <span id="aiBriefingText" class="px-6 block" th:text="${weather.aiBriefing}">캐스터가 대본을 준비중입니다...</span>
-                <i class="fas fa-quote-right text-gray-300 absolute bottom-3 right-3"></i>
+            <!-- 오른쪽: AI 옷차림 추천 -->
+            <div class="flex-1 p-6 md:p-8 bg-purple-50/30">
+                <div class="flex gap-4 items-start">
+                    <div class="flex-shrink-0 text-center">
+                        <div class="w-16 h-16 rounded-full bg-white border-2 border-purple-200 flex items-center justify-center text-3xl shadow-sm mb-2">
+                            👗
+                        </div>
+                        <span class="text-[10px] font-bold text-purple-500 uppercase tracking-wider bg-purple-100 px-2 py-0.5 rounded-full">Stylist</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-purple-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-tshirt"></i> 오늘의 옷차림 추천
+                        </h4>
+                        <div class="bg-white p-4 rounded-xl rounded-tl-none border border-purple-100 shadow-sm relative flex flex-col gap-2">
+                            <div class="flex items-center gap-3 mb-1">
+                                <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                                    <i th:class="${weather.outfitIcon}"></i>
+                                </div>
+                                <span class="font-bold text-gray-800">Today's Pick!</span>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed font-medium text-sm md:text-base">
+                                <span th:utext="${weather.clothingRecommendation}"></span>
+                            </p>
+                            <!-- 말풍선 꼬리 -->
+                            <div class="absolute top-0 -left-2 w-4 h-4 bg-white border-t border-l border-purple-100 transform -rotate-45"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -199,40 +243,6 @@
         </div>
     </div>
 
-    <!-- 5. [AI] 옷차림 추천 카드 -->
-    <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-3xl p-8 shadow-2xl mb-10 text-white relative overflow-hidden flex flex-col md:flex-row items-center gap-8 border border-white/20">
-        <!-- 배경 데코레이션 -->
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-yellow-300 opacity-10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <!-- 아이콘 영역 -->
-        <div class="bg-white/20 p-6 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.3)] hidden md:flex items-center justify-center">
-            <div class="text-5xl text-white">
-                <i class="fas fa-robot"></i>
-            </div>
-        </div>
-
-        <!-- 텍스트 내용 -->
-        <div class="relative z-10 flex-1 w-full">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-violet-100 bg-white/10 px-3 py-1 rounded-full inline-block">
-                    <i class="fas fa-sparkles text-yellow-300 mr-1"></i> AI Outfit Suggestion
-                </h3>
-            </div>
-            <h2 class="text-2xl font-bold mb-4">오늘 뭐 입지?</h2>
-
-            <div class="flex items-start gap-4 bg-black/20 p-5 rounded-2xl backdrop-blur-md border border-white/10 shadow-inner">
-                <div class="text-3xl mt-1 text-white/90 bg-white/10 p-2 rounded-lg">
-                    <i th:class="${weather.outfitIcon}"></i>
-                </div>
-                <div>
-                    <p class="text-lg font-medium leading-relaxed text-white/95">
-                        <span th:utext="${weather.clothingRecommendation}"></span>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- AI 날씨 DJ 카드 -->
     <div class="bg-black/80 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-gray-700 mb-10 text-white flex flex-col md:flex-row gap-6">
