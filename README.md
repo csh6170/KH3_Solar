@@ -88,38 +88,37 @@
 
 ```bash
 ├── src
-│   ├── main
-│   │   ├── java/com/solar
-│   │   │   ├── controller
-│   │   │   │   ├── EarthquakeController.java  # 지진 컨트롤러 
-│   │   │   │   ├── SolarController.java       # 내일 날씨와 태양광 전기생산 컨트롤러
-│   │   │   │   ├── TyphoonController.java     # 태풍 컨트롤러 
-│   │   │   │   └── WeatherController.java     # 날씨 컨트롤러 
-│   │   │   │ 
-│   │   │   └── dto                            # 데이터 전송 객체
-│   │   │   │   ├── EarthquakeDTO.java   
-│   │   │   │   ├── TyphoonDTO.java   
-│   │   │   │   └── WeatherDTO.java   
-│   │   │   │
-│   │   │   ├── service
-│   │   │   │   ├── ClothingService.java   # 기상청/재난 API 데이터 파싱 로직
-│   │   │   │   ├── LocationService.java   # 기상청/재난 API 데이터 파싱 로직
-│   │   │   │   ├── TomorrowWeatherService.java   # 기상청/재난 API 데이터 파싱 로직
-│   │   │   │   └── WeatherService.java   # 기상청/재난 API 데이터 파싱 로직
-│   │   │   │   
-│   │   └── resources
-│   │       ├── static                    # CSS, JS, Images
-│   │       └── templates
-│   │           ├── earthquake.html       # 지진 감시 대시보드
-│   │           ├── index.html            # 메인 대시보드
-│   │           ├── result.html            # 메인 대시보드
-│   │           ├── typhoon.html          # 태풍 감시 대시보드
-│   │           ├── footer.html           # 태풍 감시 대시보드
-│   │           └── weather.html          # 모달 및 iframe 부모 페이지
-├── python
-│   ├── predict.py                        # AI 예측 엔진 (Java와 ProcessBuilder로 통신)
-│   └── solar_model.pkl                   # 학습된 Random Forest 모델
-└── README.md
+│   └── main
+│       ├── java/com/solar
+│       │   ├── CalculatorApplication.java    # Spring Boot 메인 실행 파일
+│       │   ├── controller
+│       │   │   ├── SolarController.java      # 태양광 예측 및 수익 분석 제어
+│       │   │   ├── WeatherController.java    # 날씨 데이터 및 AI Caster 로직
+│       │   │   ├── EarthquakeController.java # 지진 감시 대시보드 컨트롤러
+│       │   │   └── TyphoonController.java    # 태풍 감시 대시보드 컨트롤러
+│       │   ├── service
+│       │   │   ├── WeatherService.java       # 기상청 단기예보 API 호출 및 파싱
+│       │   │   ├── TomorrowWeatherService.java # 내일 날씨 데이터 정제
+│       │   │   ├── ClothingService.java      # 기온별 옷차림 추천(AI Outfit) 로직
+│       │   │   └── LocationService.java      # 행정구역(시/군/구) 및 격자 좌표 관리
+│       │   └── dto                           # 데이터 전송 객체 (WeatherDTO, etc.)
+│       └── resources
+│           ├── templates                     # View (Thymeleaf HTML)
+│           │   ├── index.html                # 메인 대시보드 (날씨/AI 브리핑)
+│           │   ├── result.html               # 태양광 예측 결과 리포트 (모달)
+│           │   ├── earthquake.html           # 지진 감시 페이지
+│           │   ├── typhoon.html              # 태풍 감시 페이지
+│           │   └── weather.html              # 날씨 상세 페이지
+│           ├── static                        # CSS, JS, Images
+│           ├── application.properties        # 환경 설정
+│           └── weather_location.csv          # 기상청 API 연동용 격자 좌표 데이터
+├── predict.py                                # AI 발전량 예측 실행 엔진 (Java와 연동)
+├── train_model.py                            # Random Forest 모델 학습 스크립트
+├── solar_analysis.py                         # 태양광 데이터 분석 스크립트
+├── ai_server.py                              # AI 연동 관련 서버 스크립트
+├── convert_weather.py                        # 날씨 데이터 변환 유틸리티
+├── merge_data.py                             # 데이터 병합 유틸리티
+└── build.gradle                              # Gradle 빌드 설정
 
 ```
 
