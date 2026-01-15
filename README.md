@@ -1,14 +1,14 @@
 # ☀️ Solar AI & Weather Safety Dashboard
 > 기상청 API와 AI 모델을 결합한 지능형 태양광 발전 예측 및 재난 안전 큐레이션 서비스
 
-<img src="https://github.com/user-attachments/assets/5d459c3c-61c2-49f3-b944-bc305da72506" width="100%" alt="Main Dashboard Screen" />
+<img src="https://github.com/user-attachments/assets/d9a218d7-6c7f-412b-b4c3-8fb3bde63016" width="100%" alt="Main Dashboard Screen" />
 
 > **이미지 설명**: 기상청 API와 AI 모델이 결합된 태양광 발전 예측 대시보드 메인 화면
 
 ---
 
 ## 📖 프로젝트 개요 (Project Overview)
-본 프로젝트는 실시간 기상 데이터를 기반으로 태양광 발전량을 예측하여 경제적 가치를 분석하고, 사용자의 일상과 안전을 지키기 위한 AI 기반 라이프스타일(옷차림, 음악) 및 재난(지진, 태풍) 정보를 통합 제공하는 웹 서비스입니다. 
+본 프로젝트는 실시간 기상 데이터를 기반으로 태양광 발전량을 예측하여 경제적 가치를 분석하고, 사용자의 일상과 안전을 지키기 위한 AI 기반 라이프스타일(옷차림, 음악) 및 재난(지진, 태풍) 정보를 통합 제공하는 웹 서비스입니다.
 
 단순한 날씨 정보 제공을 넘어, "내일 내 태양광 패널이 얼마나 벌어다 줄까?" 라는 질문에 답하고, "오늘 지진이나 태풍 위험은 없을까?" 라는 불안을 해소하는 것을 목표로 합니다.
 
@@ -19,7 +19,7 @@
 ### 1. ⚡ 태양광 발전 예측 및 수익 분석 (Solar Prediction)
 * **정밀 지역 및 용량 설정**: 전국 시/도, 시/구/군 단위의 세부 지역 선택과 설비 용량(kW) 입력을 지원합니다.
 * **AI 발전량 예측**: 과거 발전 데이터와 기상관측(ASOS) 데이터를 학습한 Random Forest 모델이 내일의 시간대별(06시~19시) 예상 발전량(kWh)을 산출합니다.
-* **경제성 분석 리포트**: 
+* **경제성 분석 리포트**:
     * 예상 총 발전량 및 시간대별 발전 추이 그래프 제공
     * 누진세를 고려한 예상 전기요금 절약액(KRW) 자동 계산
     * *예시: 서울 강남구 3kW 설비 → 예상 발전량 16.91kWh, 예상 절약액 2,029원*
@@ -30,7 +30,7 @@
 * **AI Weather DJ**: 날씨 분위기(흐림, 맑음, 비 등)에 어울리는 음악 장르와 코멘트를 제공합니다.
 
 ### 3. 🚨 실시간 재난 안전 모니터링 (Safety Dashboard)
-* **지진 감시 (Earthquake Watch)**: 
+* **지진 감시 (Earthquake Watch)**:
     * 최근 30일 이내 발생한 지진 기록 및 규모별 통계 시각화
     * 실시간 대응 단계(관심/주의) 및 상황별 행동 요령 안내
 * **태풍 감시 (Typhoon Watch)**:
@@ -61,7 +61,7 @@
 | Category | Technology |
 | :--- | :--- |
 | **Language** | Java 25, Python 3.9, JavaScript (ES6) |
-| **Framework** | Spring Boot 3.x, Thymeleaf |
+| **Framework** | Spring Boot 4.0.0, Thymeleaf |
 | **CSS / UI** | Tailwind CSS, Font Awesome 6 |
 | **Libraries** | Tippy.js, SweetAlert2, Chart.js |
 | **AI / Data** | Scikit-learn (Random Forest), Pandas, NumPy |
@@ -110,22 +110,21 @@
 
 * Model: Random Forest Regressor
 * Training Data: 한국동서발전 시간대별 태양광 발전량 (2021-2024) + 종관기상관측(ASOS) 날씨 데이터
-* Accuracy: R² Score 0.8+ (검증 셋 기준)
 
 ---
 
 ## 👨‍💻 팀원 및 역할 (Team Members)
 
-* 최성호, [Solar AI Engine & Core Logic]
-  • Scikit-learn(Random Forest)을 활용한 태양광 발전량 예측 모델 구축
-  • Python 예측 엔진과 Spring Boot(Java) 간의 ProcessBuilder 연동
-  • 발전량 기반 경제성 분석(전기요금 절약액) 알고리즘 구현
-* 조보근,"[Full-stack & Weather Safety Platform]
-  • Tailwind CSS 기반의 반응형 대시보드 UI/UX 설계 및 구현
-  • 기상청(단기예보, 지진, 태풍) 및 에어코리아 API 연동
-  • AI Caster 브리핑, 옷차림 및 음악 추천 등 라이프스타일 큐레이션 로직 구현
-  • 지진/태풍 실시간 감시 모니터링 페이지 개발"
-  
+* 최성호 [Solar AI Engine & Core Logic]
+    * Scikit-learn(Random Forest)을 활용한 태양광 발전량 예측 모델 구축
+    * Python 예측 엔진과 Spring Boot(Java) 간의 ProcessBuilder 연동
+    * 발전량 기반 경제성 분석(전기요금 절약액) 알고리즘 구현
+* 조보근 [Full-stack & Weather Safety Platform]
+    * Tailwind CSS 기반의 반응형 대시보드 UI/UX 설계 및 구현
+    * 기상청(단기예보, 지진, 태풍) 및 에어코리아 API 연동
+    * AI Caster 브리핑, 옷차림 및 음악 추천 등 라이프스타일 큐레이션 로직 구현
+    * 지진/태풍 실시간 감시 모니터링 페이지 개발"
+
 ---
 
 ## © License
