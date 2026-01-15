@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class WeatherService {
+public class TomorrowWeatherService {
 
     // 🔑 본인의 Service Key (Encoding 된 키가 필요할 수도 있음, 에러 시 확인)
     private static final String SERVICE_KEY = "860d22d5afed47ba3bd53eb2e86fb3f152fa17a30ec99d05c043412e5e2d8d05";

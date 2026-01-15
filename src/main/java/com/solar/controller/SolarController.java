@@ -3,7 +3,7 @@ package com.solar.controller;
 import com.fasterxml.jackson.databind.JsonNode;     // ✅ [추가] JSON 처리용
 import com.fasterxml.jackson.databind.ObjectMapper; // ✅ [추가] JSON 처리용
 import com.solar.service.LocationService;
-import com.solar.service.WeatherService;
+import com.solar.service.TomorrowWeatherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,14 +21,14 @@ import java.util.Set;
 public class SolarController {
 
     @Autowired
-    private WeatherService weatherService;
+    private TomorrowWeatherService tomorrowWeatherService;
 
     @Autowired
     private LocationService locationService;
 
     // 🏠 메인 페이지
     // 1. 버튼만 있는 메인 페이지
-    @GetMapping("/")
+    @GetMapping("/test")
     public String mainPage() {
         return "test"; // 버튼만 있는 html 파일명 (예: main.html)
     }
@@ -62,7 +62,7 @@ public class SolarController {
 
         // ▼▼▼ [수정] 반환 타입을 Map<String, Double> -> Map<String, Object>로 변경 ▼▼▼
         // (POP, PTY 등 다양한 데이터를 담기 위함)
-        Map<String, Object> weatherData = weatherService.getTomorrowWeather(point.nx, point.ny);
+        Map<String, Object> weatherData = tomorrowWeatherService.getTomorrowWeather(point.nx, point.ny);
 
         if (weatherData != null) {
             response.putAll(weatherData); // pop, temp, rain 등이 여기서 다 들어감
