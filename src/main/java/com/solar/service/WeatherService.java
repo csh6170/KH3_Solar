@@ -17,7 +17,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Slf4j
@@ -41,13 +43,12 @@ public class WeatherService {
     private final String URL_TYPHOON= "http://apis.data.go.kr/1360000/TyphoonInfoService/getTyphoonInfoList";// 태풍정보조회
     private final String URL_DUST   = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty";// 미세먼지정보조회
 
-    // [NEW] 보건기상지수 (꽃가루) URL
-    // 참고: API URL은 제공 기관에 따라 다를 수 있으나, 일반적으로 LivingWthrIdxServiceV4 안에 포함되어 있거나 별도 서비스일 수 있습니다.
-    // 여기서는 '보건기상지수 조회서비스'의 URL 예시를 사용합니다. (확인 필요: getOakPollenRiskIdxV4 등)
+    // 보건기상지수 (꽃가루) URL
     private final String URL_POLLEN_OAK   = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getOakPollenRiskIdxV4";
     private final String URL_POLLEN_PINE  = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getPinePollenRiskIdxV4";
     private final String URL_POLLEN_WEEDS = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getWeedsPollenRiskIdxV4";
 
+    private final String URL_SUNRISE = "https://api.sunrise-sunset.org/json"; // 일출일몰시간조회 (외부 API, No Key Required)
 
     private final String AI_SERVER_URL = "http://localhost:5000";// AI 캐스터 및 DJ 서버 URL
 
@@ -66,15 +67,16 @@ public class WeatherService {
             fetchSensibleTemp(dto);                 // 4. 체감온도 예측 (AI 서버 요청)
             calculateDiscomfortIndex(dto);          // 5. 불쾌지수 계산 (자체 로직)
             fetchPollenIndex(dto, areaNo);          // 6. 꽃가루 지수 (보건기상지수)
+            fetchSunriseSunset(dto, nx, ny);        // 7. 일출/일몰 시간
 
-            fetchFineDust(dto, "서울");     // 7. 미세먼지 (고정: 서울)
-            fetchWeatherWarning(dto, stnId);        // 8. 기상특보
+            fetchFineDust(dto, "서울");     // 8. 미세먼지 (고정: 서울)
+            fetchWeatherWarning(dto, stnId);        // 9. 기상특보
 
             // 사용자 위치 기반 거리 계산 및 안전 분석 포함
-            fetchEarthquake(dto, userLat, userLon); // 9. 지진 정보
-            fetchTyphoon(dto, userLat, userLon);    // 10. 태풍 정보
+            fetchEarthquake(dto, userLat, userLon); // 10. 지진 정보
+            fetchTyphoon(dto, userLat, userLon);    // 11. 태풍 정보
 
-            // 11. AI 기능
+            // 12. AI 기능
             String recommendation = clothingService.recommendOutfit(dto.getTMP(), dto.getPTY(), dto.getWSD());
             String icon = clothingService.getOutfitIcon(dto.getTMP());
             dto.setClothingRecommendation(recommendation);
@@ -90,7 +92,145 @@ public class WeatherService {
         return dto;
     }
 
-    // ================= [NEW] 꽃가루 농도 지수 조회 로직 =================
+    // ================= [MODIFIED] 일출/일몰/월출/월몰 계산 로직 =================
+    private void fetchSunriseSunset(WeatherDTO dto, int nx, int ny) {
+        try {
+            double[] gps = convertGridToGps(nx, ny);
+            double lat = gps[0];
+            double lng = gps[1];
+
+            // 오늘 날짜 기준 API 호출
+            URI uri = UriComponentsBuilder.fromUriString(URL_SUNRISE)
+                    .queryParam("lat", lat)
+                    .queryParam("lng", lng)
+                    .queryParam("formatted", "0")
+                    .queryParam("date", "today")
+                    .build()
+                    .toUri();
+
+            String json = new RestTemplate().getForObject(uri, String.class);
+            JsonNode root = mapper.readTree(json);
+
+            if (!"OK".equals(root.path("status").asText())) return;
+
+            JsonNode results = root.path("results");
+            String sunriseUtc = results.path("sunrise").asText();
+            String sunsetUtc = results.path("sunset").asText();
+
+            // ZonedDateTime을 사용하여 시간대 변환 (UTC -> KST)
+            ZonedDateTime sunriseZoned = ZonedDateTime.parse(sunriseUtc, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    .withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+            ZonedDateTime sunsetZoned = ZonedDateTime.parse(sunsetUtc, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    .withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+
+            dto.setSunrise(sunriseZoned.format(DateTimeFormatter.ofPattern("HH:mm")));
+            dto.setSunset(sunsetZoned.format(DateTimeFormatter.ofPattern("HH:mm")));
+
+            // 현재 시간
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+            LocalDateTime sunriseTime = sunriseZoned.toLocalDateTime();
+            LocalDateTime sunsetTime = sunsetZoned.toLocalDateTime();
+
+            // 낮/밤 판별
+            boolean isDay = now.isAfter(sunriseTime) && now.isBefore(sunsetTime);
+            dto.setDayTime(isDay);
+
+            if (isDay) {
+                // [낮] Sun Cycle: 일출 ~ 일몰
+                long totalDaySeconds = ChronoUnit.SECONDS.between(sunriseTime, sunsetTime);
+                long currentSeconds = ChronoUnit.SECONDS.between(sunriseTime, now);
+                double progress = (double) currentSeconds / totalDaySeconds * 100.0;
+                dto.setSunProgress(Math.min(Math.max(progress, 0), 100));
+            } else {
+                // [밤] Moon Cycle: 일몰 ~ 다음날 일출
+                // 만약 현재 시간이 자정 이후(새벽)라면, '어제 일몰' ~ '오늘 일출' 기준
+                // 만약 현재 시간이 자정 이전(저녁)라면, '오늘 일몰' ~ '내일 일출' 기준
+
+                LocalDateTime moonStart; // 시작점 (일몰)
+                LocalDateTime moonEnd;   // 끝점 (일출)
+
+                if (now.isBefore(sunriseTime)) {
+                    // 새벽 시간대: 어제 일몰 ~ 오늘 일출
+                    moonStart = sunsetTime.minusDays(1); // 어제 일몰
+                    moonEnd = sunriseTime;               // 오늘 일출
+                } else {
+                    // 저녁 시간대: 오늘 일몰 ~ 내일 일출
+                    moonStart = sunsetTime;              // 오늘 일몰
+                    moonEnd = sunriseTime.plusDays(1);   // 내일 일출
+                }
+
+                long totalNightSeconds = ChronoUnit.SECONDS.between(moonStart, moonEnd);
+                long currentNightSeconds = ChronoUnit.SECONDS.between(moonStart, now);
+                double progress = (double) currentNightSeconds / totalNightSeconds * 100.0;
+                dto.setSunProgress(Math.min(Math.max(progress, 0), 100));
+
+                // 달의 위상 계산 (간이 로직 - 음력 날짜 계산이 복잡하므로 API 없이 날짜 기반 추정)
+                // 실제로는 Lunar API를 써야 정확하지만, 여기서는 시각적 재미를 위해 간단히 처리하거나 고정값 사용
+                dto.setMoonPhase("Moon Night");
+            }
+
+        } catch (Exception e) {
+            log.warn("일출/일몰 조회 실패: {}", e.getMessage());
+            dto.setSunrise("06:00");
+            dto.setSunset("19:30");
+            dto.setSunProgress(50);
+            dto.setDayTime(true);
+        }
+    }
+
+    // [Helper] 기상청 격자(Grid) -> 위경도(GPS) 변환 (Lambert Conformal Conic Projection)
+    private double[] convertGridToGps(int nx, int ny) {
+        double RE = 6371.00877; // 지구 반경(km)
+        double GRID = 5.0; // 격자 간격(km)
+        double SLAT1 = 30.0; // 투영 위도1(degree)
+        double SLAT2 = 60.0; // 투영 위도2(degree)
+        double OLON = 126.0; // 기준점 경도(degree)
+        double OLAT = 38.0; // 기준점 위도(degree)
+        double XO = 43; // 기준점 X좌표(GRID)
+        double YO = 136; // 기준점 Y좌표(GRID)
+
+        double DEGRAD = Math.PI / 180.0;
+        double RADDEG = 180.0 / Math.PI;
+
+        double re = RE / GRID;
+        double slat1 = SLAT1 * DEGRAD;
+        double slat2 = SLAT2 * DEGRAD;
+        double olon = OLON * DEGRAD;
+        double olat = OLAT * DEGRAD;
+
+        double sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+        sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
+        double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
+        sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
+        double ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
+        ro = re * sf / Math.pow(ro, sn);
+
+        double xn = nx - XO;
+        double yn = ro - ny + YO;
+        double ra = Math.sqrt(xn * xn + yn * yn);
+        if (sn < 0.0) ra = -ra;
+        double alat = Math.pow((re * sf / ra), (1.0 / sn));
+        alat = 2.0 * Math.atan(alat) - Math.PI * 0.5;
+
+        double theta;
+        if (Math.abs(xn) <= 0.0) theta = 0.0;
+        else {
+            if (Math.abs(yn) <= 0.0) {
+                theta = Math.PI * 0.5;
+                if (xn < 0.0) theta = -theta;
+            } else theta = Math.atan2(xn, yn);
+        }
+        double alon = theta / sn + olon;
+        double lat = alat * RADDEG;
+        double lon = alon * RADDEG;
+
+        return new double[]{lat, lon};
+    }
+
+
+
+
+    // ================= 꽃가루 농도 지수 조회 로직 =================
     private void fetchPollenIndex(WeatherDTO dto, String areaNo) {
         // 행정구역 코드 보정
         String safeAreaNo = (areaNo == null || areaNo.length() != 10) ? "1100000000" : areaNo;
