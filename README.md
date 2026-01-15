@@ -110,7 +110,6 @@
 
 * Model: Random Forest Regressor
 * Training Data: 한국동서발전 시간대별 태양광 발전량 (2021-2024) + 종관기상관측(ASOS) 날씨 데이터
-* Accuracy: R² Score 0.8+ (검증 셋 기준)
 
 ---
 
