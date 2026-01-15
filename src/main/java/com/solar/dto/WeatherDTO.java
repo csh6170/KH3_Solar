@@ -32,6 +32,13 @@ public class WeatherDTO {
     private String VVV;         // 남북바람
     private String WAV;         // 파고
 
+    // ================= [NEW] 꽃가루 농도 위험지수 필드 =================
+    // 값이 없을 경우(겨울철 등) null 또는 "0"으로 처리
+    private String oakPollenRisk;   // 참나무 (봄)
+    private String pinePollenRisk;  // 소나무 (봄)
+    private String weedsPollenRisk; // 잡초류 (가을)
+    private String pollenComment;   // 통합 코멘트 (가장 높은 등급 기준)
+
     // ================= AI 체감온도/불쾌지수 분석 데이터 =================
     private String sensibleTemp;    // 체감온도 (AI Regression 예측값)
     private String discomfortIndex; // 불쾌지수 (계산값)

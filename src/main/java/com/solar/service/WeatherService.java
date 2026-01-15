@@ -41,6 +41,14 @@ public class WeatherService {
     private final String URL_TYPHOON= "http://apis.data.go.kr/1360000/TyphoonInfoService/getTyphoonInfoList";// 태풍정보조회
     private final String URL_DUST   = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty";// 미세먼지정보조회
 
+    // [NEW] 보건기상지수 (꽃가루) URL
+    // 참고: API URL은 제공 기관에 따라 다를 수 있으나, 일반적으로 LivingWthrIdxServiceV4 안에 포함되어 있거나 별도 서비스일 수 있습니다.
+    // 여기서는 '보건기상지수 조회서비스'의 URL 예시를 사용합니다. (확인 필요: getOakPollenRiskIdxV4 등)
+    private final String URL_POLLEN_OAK   = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getOakPollenRiskIdxV4";
+    private final String URL_POLLEN_PINE  = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getPinePollenRiskIdxV4";
+    private final String URL_POLLEN_WEEDS = "http://apis.data.go.kr/1360000/HealthWthrIdxServiceV4/getWeedsPollenRiskIdxV4";
+
+
     private final String AI_SERVER_URL = "http://localhost:5000";// AI 캐스터 및 DJ 서버 URL
 
     // =========== 메인 통합 조회 메서드 ===========
@@ -57,15 +65,16 @@ public class WeatherService {
 
             fetchSensibleTemp(dto);                 // 4. 체감온도 예측 (AI 서버 요청)
             calculateDiscomfortIndex(dto);          // 5. 불쾌지수 계산 (자체 로직)
+            fetchPollenIndex(dto, areaNo);          // 6. 꽃가루 지수 (보건기상지수)
 
-            fetchFineDust(dto, "서울");     // 6. 미세먼지 (고정: 서울)
-            fetchWeatherWarning(dto, stnId);        // 7. 기상특보
+            fetchFineDust(dto, "서울");     // 7. 미세먼지 (고정: 서울)
+            fetchWeatherWarning(dto, stnId);        // 8. 기상특보
 
             // 사용자 위치 기반 거리 계산 및 안전 분석 포함
-            fetchEarthquake(dto, userLat, userLon); // 8. 지진 정보
-            fetchTyphoon(dto, userLat, userLon);    // 9. 태풍 정보
+            fetchEarthquake(dto, userLat, userLon); // 9. 지진 정보
+            fetchTyphoon(dto, userLat, userLon);    // 10. 태풍 정보
 
-            // 10. AI 기능
+            // 11. AI 기능
             String recommendation = clothingService.recommendOutfit(dto.getTMP(), dto.getPTY(), dto.getWSD());
             String icon = clothingService.getOutfitIcon(dto.getTMP());
             dto.setClothingRecommendation(recommendation);
@@ -79,6 +88,109 @@ public class WeatherService {
             log.error("날씨 통합 조회 실패", e);
         }
         return dto;
+    }
+
+    // ================= [NEW] 꽃가루 농도 지수 조회 로직 =================
+    private void fetchPollenIndex(WeatherDTO dto, String areaNo) {
+        // 행정구역 코드 보정
+        String safeAreaNo = (areaNo == null || areaNo.length() != 10) ? "1100000000" : areaNo;
+
+        // 현재 시간 (요청 시간 계산: 06시, 18시 기준)
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        String requestTime;
+        if (now.getHour() < 6) requestTime = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd18"));
+        else if (now.getHour() < 18) requestTime = now.format(DateTimeFormatter.ofPattern("yyyyMMdd06"));
+        else requestTime = now.format(DateTimeFormatter.ofPattern("yyyyMMdd18"));
+
+        // 계절 체크 (불필요한 API 호출 방지)
+        int month = now.getMonthValue();
+        boolean isSpring = (month >= 4 && month <= 6); // 4~6월: 참나무, 소나무
+        boolean isAutumn = (month >= 8 && month <= 10); // 8~10월: 잡초류
+
+        try {
+            if (isSpring) {
+                // 참나무
+                String oakVal = callPollenApi(URL_POLLEN_OAK, safeAreaNo, requestTime);
+                dto.setOakPollenRisk(oakVal);
+                // 소나무
+                String pineVal = callPollenApi(URL_POLLEN_PINE, safeAreaNo, requestTime);
+                dto.setPinePollenRisk(pineVal);
+            }
+
+            if (isAutumn) {
+                // 잡초류
+                String weedsVal = callPollenApi(URL_POLLEN_WEEDS, safeAreaNo, requestTime);
+                dto.setWeedsPollenRisk(weedsVal);
+            }
+
+            // 코멘트 생성
+            generatePollenComment(dto);
+
+        } catch (Exception e) {
+            log.warn("꽃가루 지수 조회 실패: {}", e.getMessage());
+            dto.setPollenComment("꽃가루 정보를 불러올 수 없습니다.");
+        }
+    }
+
+    // API 호출 헬퍼
+    private String callPollenApi(String url, String areaNo, String time) {
+        try {
+            URI uri = UriComponentsBuilder.fromUriString(url)
+                    .queryParam("serviceKey", API_KEY)
+                    .queryParam("pageNo", "1")
+                    .queryParam("numOfRows", "10")
+                    .queryParam("dataType", "JSON")
+                    .queryParam("areaNo", areaNo)
+                    .queryParam("time", time)
+                    .build()
+                    .toUri();
+
+            String json = new RestTemplate().getForObject(uri, String.class);
+            JsonNode root = mapper.readTree(json);
+
+            if (!"00".equals(root.path("response").path("header").path("resultCode").asText())) return null;
+
+            JsonNode items = root.path("response").path("body").path("items").path("item");
+            if (items.isEmpty()) return null;
+
+            // h0(오늘) 값 반환
+            return items.get(0).path("h0").asText();
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // 코멘트 생성 로직
+    private void generatePollenComment(WeatherDTO dto) {
+        String oak = dto.getOakPollenRisk();
+        String pine = dto.getPinePollenRisk();
+        String weeds = dto.getWeedsPollenRisk();
+
+        int maxRisk = 0;
+        String type = "";
+
+        if (oak != null) {
+            try { int val = Integer.parseInt(oak); if(val > maxRisk) { maxRisk = val; type = "참나무"; } } catch(Exception e){}
+        }
+        if (pine != null) {
+            try { int val = Integer.parseInt(pine); if(val > maxRisk) { maxRisk = val; type = "소나무"; } } catch(Exception e){}
+        }
+        if (weeds != null) {
+            try { int val = Integer.parseInt(weeds); if(val > maxRisk) { maxRisk = val; type = "잡초류"; } } catch(Exception e){}
+        }
+
+        if (maxRisk == 0) {
+            dto.setPollenComment("꽃가루 위험이 없습니다.");
+        } else if (maxRisk == 1) {
+            dto.setPollenComment("꽃가루 농도가 낮습니다.");
+        } else if (maxRisk == 2) {
+            dto.setPollenComment(type + " 꽃가루가 날릴 수 있습니다. 환기에 주의하세요.");
+        } else if (maxRisk >= 3) {
+            dto.setPollenComment("🚨 " + type + " 꽃가루 농도 위험! 마스크를 꼭 착용하세요.");
+        } else {
+            dto.setPollenComment("제공 기간이 아닙니다.");
+        }
     }
 
     // ================= AI 체감온도 예측 요청 =================

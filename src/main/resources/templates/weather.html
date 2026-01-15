@@ -88,15 +88,9 @@
                 <i class="fas fa-location-dot text-blue-500"></i>
                 <span th:text="${currentRegionName}">지역명</span>
             </h2>
-            <div class="flex items-end gap-3 justify-center md:justify-start">
-                <!-- 현재 온도 -->
-                <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
-                    <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
-                </div>
-                <!-- 체감 온도 -->
-                <div class="mb-5 text-gray-500 font-bold bg-gray-100 px-3 py-1 rounded-xl shadow-inner">
-                    <i class="fas fa-user-check text-indigo-500 mr-1"></i>체감 <span th:text="${weather.sensibleTemp}">-</span>°
-                </div>
+            <!-- 현재 온도 -->
+            <div class="text-7xl font-extrabold mb-2 text-gray-900 tracking-tight">
+                <span th:text="${weather.TMP}">-</span><span class="text-4xl align-top">°</span>
             </div>
             <!-- 날씨 상태 및 최저/최고 기온 -->
             <p class="text-xl font-medium text-gray-600">
@@ -107,6 +101,9 @@
                 <span class="flex items-center gap-1"><i class="fas fa-temperature-low text-blue-500"></i> 최저 <span th:text="${weather.TMN != null ? weather.TMN : '-'}"></span>°</span>
                 <span class="w-px h-4 bg-gray-300"></span>
                 <span class="flex items-center gap-1"><i class="fas fa-temperature-high text-red-500"></i> 최고 <span th:text="${weather.TMX != null ? weather.TMX : '-'}"></span>°</span>
+                <span class="w-px h-4 bg-gray-300"></span>
+                <span class="flex items-center gap-1"><i class="fas fa-user-check text-indigo-500"></i> 체감 <span th:text="${weather.sensibleTemp != null ? weather.sensibleTemp : '-'}"></span>°</span>
+
             </div>
         </div>
 
@@ -432,46 +429,79 @@
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- 자외선 카드 -->
-            <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-orange-100/50 flex items-center justify-between hover:shadow-lg transition">
-                <div>
-                    <div class="text-sm font-bold text-orange-500 mb-1 flex items-center gap-1"><i class="fas fa-sun"></i> 자외선 지수</div>
-                    <div class="text-3xl font-bold text-gray-800 mb-2">
-                        <span th:text="${weather.uvStage}">-</span>
-                        <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.uvIndex} + ')'"></span>
+            <a href="https://www.weather.go.kr/w/theme/daily-life/life-index.do" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-orange-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-orange-500 mb-1 flex items-center gap-1"><i class="fas fa-sun"></i> 자외선 지수</div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2">
+                            <span th:text="${weather.uvStage}">-</span>
+                            <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.uvIndex} + ')'"></span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.uvComment}">정보 로딩중...</p>
                     </div>
-                    <p class="text-sm text-gray-500 leading-tight" th:text="${weather.uvComment}">정보 로딩중...</p>
+                    <div class="text-5xl text-orange-200 opacity-50"><i class="fas fa-umbrella-beach"></i></div>
                 </div>
-                <div class="text-5xl text-orange-200 opacity-50"><i class="fas fa-umbrella-beach"></i></div>
-            </div>
+            </a>
 
             <!-- 미세먼지 카드 -->
-            <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-gray-100/50 flex items-center justify-between hover:shadow-lg transition">
-                <div>
-                    <div class="text-sm font-bold text-gray-600 mb-1 flex items-center gap-1"><i class="fas fa-smog"></i> 미세먼지(PM10)</div>
-                    <div class="text-3xl font-bold text-gray-800 mb-2">
-                        <span th:text="${weather.getGradeText(weather.pm10Grade)}">-</span>
-                        <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.pm10Value} + '㎍/㎥)'"></span>
+            <a href="https://www.airkorea.or.kr/" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-gray-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-gray-600 mb-1 flex items-center gap-1"><i class="fas fa-smog"></i> 미세먼지(PM10)</div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2">
+                            <span th:text="${weather.getGradeText(weather.pm10Grade)}">-</span>
+                            <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.pm10Value} + '㎍/㎥)'"></span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.dustComment}">대기 정보 수신 중...</p>
                     </div>
-                    <p class="text-sm text-gray-500 leading-tight" th:text="${weather.dustComment}">대기 정보 수신 중...</p>
+                    <div class="text-5xl opacity-50"
+                         th:classappend="${weather.pm10Grade == '1' ? 'text-blue-200' : (weather.pm10Grade == '2' ? 'text-green-200' : (weather.pm10Grade == '3' ? 'text-yellow-200' : 'text-red-200'))}">
+                        <i class="fas fa-mask"></i>
+                    </div>
                 </div>
-                <div class="text-5xl opacity-50"
-                     th:classappend="${weather.pm10Grade == '1' ? 'text-blue-200' : (weather.pm10Grade == '2' ? 'text-green-200' : (weather.pm10Grade == '3' ? 'text-yellow-200' : 'text-red-200'))}">
-                    <i class="fas fa-mask"></i>
-                </div>
-            </div>
+            </a>
 
             <!-- 불쾌지수 카드 -->
-            <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-red-100/50 flex items-center justify-between hover:shadow-lg transition">
-                <div>
-                    <div class="text-sm font-bold text-red-500 mb-1 flex items-center gap-1"><i class="fas fa-tired"></i> 불쾌지수</div>
-                    <div class="text-3xl font-bold text-gray-800 mb-2">
-                        <span th:text="${weather.discomfortStage}">-</span>
-                        <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.discomfortIndex} + ')'"></span>
+            <a href="https://www.weatheri.co.kr/useful/useful04.php" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-red-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-red-500 mb-1 flex items-center gap-1"><i class="fas fa-tired"></i> 불쾌지수</div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2">
+                            <span th:text="${weather.discomfortStage}">-</span>
+                            <span class="text-lg text-gray-400 font-normal" th:text="'(' + ${weather.discomfortIndex} + ')'"></span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.discomfortComment}">계산 중...</p>
                     </div>
-                    <p class="text-sm text-gray-500 leading-tight" th:text="${weather.discomfortComment}">계산 중...</p>
+                    <div class="text-5xl text-red-200 opacity-50"><i class="fas fa-temperature-arrow-up"></i></div>
                 </div>
-                <div class="text-5xl text-red-200 opacity-50"><i class="fas fa-temperature-arrow-up"></i></div>
-            </div>
+            </a>
+
+            <!-- 꽃가루 농도 위험지수 카드 -->
+            <a href="http://www.nims.go.kr/?sub_num=1033" target="_blank" class="block hover-card">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-green-100/50 flex items-center justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="text-sm font-bold text-green-600 mb-1 flex items-center gap-1"><i class="fas fa-tree"></i> 꽃가루 농도</div>
+
+                        <!-- 계절에 따라 표시되는 정보가 다름 -->
+                        <div class="text-3xl font-bold text-gray-800 mb-2" th:if="${weather.oakPollenRisk != null}">
+                            <span th:text="${weather.getPollenRiskText(weather.oakPollenRisk)}"></span>
+                            <span class="text-xs font-normal text-gray-400 block mt-1">(참나무 기준)</span>
+                        </div>
+                        <div class="text-3xl font-bold text-gray-800 mb-2" th:if="${weather.weedsPollenRisk != null}">
+                            <span th:text="${weather.getPollenRiskText(weather.weedsPollenRisk)}"></span>
+                            <span class="text-xs font-normal text-gray-400 block mt-1">(잡초류 기준)</span>
+                        </div>
+                        <div class="text-xl font-bold text-gray-400 mb-2" th:if="${weather.oakPollenRisk == null && weather.weedsPollenRisk == null}">
+                            제공기간 아님
+                        </div>
+
+                        <p class="text-sm text-gray-500 leading-tight" th:text="${weather.pollenComment}">데이터 확인 중...</p>
+                    </div>
+                    <div class="text-5xl text-green-200 opacity-50"><i class="fas fa-seedling"></i></div>
+                </div>
+            </a>
+
+
         </div>
     </div>
 
@@ -491,7 +521,7 @@
                 </div>
             </div>
 
-            <!-- 지진 정보 (거리 표시 추가) -->
+            <!-- 지진 정보 -->
             <div th:if="${weather.hasEarthquake}" class="bg-yellow-50/95 backdrop-blur-sm border-l-8 border-yellow-500 p-6 rounded-r-2xl shadow-md flex items-start gap-5">
                 <div class="text-4xl text-yellow-600 mt-1"><i class="fas fa-rss"></i></div>
                 <div class="flex-1">
@@ -538,7 +568,7 @@
                 </div>
             </div>
 
-            <!-- 안전할 때 표시 (수정됨: 바로가기 버튼 추가) -->
+            <!-- 안전할 때 표시 -->
             <div th:if="${!weather.hasWarning && !weather.hasTyphoon && !weather.hasEarthquake}" class="bg-green-50/90 backdrop-blur-sm border-l-8 border-green-500 p-6 rounded-r-2xl shadow-md">
                 <div class="flex items-start gap-5">
                     <div class="text-4xl text-green-500 mt-1"><i class="fas fa-shield-check"></i></div>
