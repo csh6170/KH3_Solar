@@ -10,8 +10,38 @@ PYTHON_EXE = sys.executable
 script1 = "ai_server.py"
 script2 = "predict.py"
 
-print("--- Manager Start ---") # 이모지 제거
+# 설치할 라이브러리 목록
+required_packages = [
+    "fastapi",
+    "uvicorn",
+    "pandas",
+    "scikit-learn",
+    "joblib",
+    "requests",
+    "geopy",
+    "python-telegram-bot",
+    "numpy"
+]
 
+print("--- Manager Start ---")
+
+# ---------------------------------------------------------
+# 1. 라이브러리 자동 설치 (추가된 부분)
+# ---------------------------------------------------------
+print("Checking and installing libraries...")
+try:
+    # 현재 실행 중인 파이썬(sys.executable)의 pip 모듈을 호출합니다.
+    # check=True는 설치 중에 에러가 나면 스크립트를 중단시킵니다.
+    subprocess.check_call([PYTHON_EXE, "-m", "pip", "install"] + required_packages)
+    print("Library installation complete.")
+    print("--------------------------------")
+except subprocess.CalledProcessError as e:
+    print(f"Error occurred during library installation: {e}")
+    sys.exit(1) # 설치 실패 시 프로그램 종료
+
+# ---------------------------------------------------------
+# 2. 서버 및 봇 실행 (기존 코드)
+# ---------------------------------------------------------
 processes = []
 
 def kill_child_processes():
@@ -23,21 +53,27 @@ def kill_child_processes():
 
 try:
     # 파이썬 서버 실행
+    print(f"Starting {script1}...")
     p1 = subprocess.Popen([PYTHON_EXE, script1])
     processes.append(p1)
 
     # 텔레그램 봇 실행
+    print(f"Starting {script2}...")
     p2 = subprocess.Popen([PYTHON_EXE, script2])
     processes.append(p2)
 
-    print("Servers are running. Monitoring parent process...")
+    print("All servers are running. Monitoring parent process...")
 
     while True:
         time.sleep(2)
+        # 두 프로세스 중 하나라도 죽으면 매니저도 종료 (또는 재시작 로직 추가 가능)
         if p1.poll() is not None or p2.poll() is not None:
+            print("One of the processes has stopped. Shutting down...")
             break
 except Exception as e:
     print(f"Error: {e}")
+except KeyboardInterrupt:
+    print("User stopped the manager.")
 finally:
     kill_child_processes()
     print("Cleanup complete.")

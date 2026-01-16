@@ -1,3 +1,5 @@
+import sys  # [필수 추가] 시스템 설정 제어
+import io   # [필수 추가] 입출력 인코딩 제어
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pandas as pd
@@ -8,6 +10,10 @@ import random
 import numpy as np
 from contextlib import asynccontextmanager # lifespan을 위한 모듈
 
+# --- [추가] 터미널 인코딩 에러 방지 설정 (CP949 환경 대응) ---
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding='utf-8')
 
 # lifespan 정의: 앱 시작/종료 시 실행될 로직
 @asynccontextmanager
