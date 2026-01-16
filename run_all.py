@@ -11,7 +11,7 @@ PYTHON_EXE = sys.executable
 script1 = "ai_server.py"
 script2 = "predict.py"
 
-print(f"🚀 통합 서버 매니저를 시작합니다...")
+print(f"통합 서버 매니저를 시작합니다...")
 print(f"python: {PYTHON_EXE}")
 
 processes = []
@@ -27,14 +27,14 @@ try:
     p2 = subprocess.Popen([PYTHON_EXE, script2])
     processes.append(p2)
 
-    print("\n✅ 두 서비스가 모두 실행되었습니다. 종료하려면 Ctrl+C를 누르세요.\n")
+    print("\n두 서비스가 모두 실행되었습니다. 종료하려면 Ctrl+C를 누르세요.\n")
     
     # 메인 프로세스가 종료되지 않도록 무한 대기
     while True:
         time.sleep(1)
 
 except KeyboardInterrupt:
-    print("\n🛑 종료 요청(Ctrl+C) 감지! 모든 프로세스를 정리합니다...")
+    print("\n종료 요청(Ctrl+C) 감지! 모든 프로세스를 정리합니다...")
 
 finally:
     # 종료 시 자식 프로세스들도 함께 Kill

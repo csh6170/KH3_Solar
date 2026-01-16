@@ -35,8 +35,8 @@ class AiServerManager {
         try {
             // [중요] 파이썬 실행 명령어 및 경로 설정
             // 가상환경을 쓴다면 "venv/bin/python" 처럼 전체 경로를 입력해야 할 수도 있음
-            // ai_server.py가 프로젝트 루트(build.gradle이 있는 곳)에 있음으로 경로 설정
-            ProcessBuilder builder = new ProcessBuilder("python", "ai_server.py");
+            // run_all.py가 프로젝트 루트(build.gradle이 있는 곳)에 있음으로 경로 설정
+            ProcessBuilder builder = new ProcessBuilder("python", "run_all.py");
 
             // 파이썬 서버의 로그를 자바 콘솔에도 같이 출력하게 설정
             builder.inheritIO();
