@@ -760,7 +760,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-        // 태양 아이콘 위치 업데이트 함수
+    // 태양 아이콘 위치 업데이트 함수
     function updateSunPosition() {
         // Thymeleaf 변수 주입 (서버에서 계산된 진행률)
         /*[# th:if="${weather.sunProgress != null}"]*/
@@ -812,6 +812,7 @@
         }
     }
 
+    // 차트 및 음성 합성 초기화
     document.addEventListener("DOMContentLoaded", function() {
         window.speechSynthesis.getVoices();
 
@@ -911,6 +912,7 @@
     const modal = document.getElementById('predictModal');
     const iframe = document.getElementById('predictFrame');
 
+    // 모달 열기 함수
     function openModal() {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -920,7 +922,7 @@
             iframe.contentWindow.resetAll();
         }
     }
-
+    // 모달 닫기 함수
     function closeModal() {
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
