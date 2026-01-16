@@ -69,14 +69,14 @@
 
         <!-- 컨트롤 영역 (다크모드 토글 + 태양광 + 지역선택) -->
         <div class="flex flex-wrap justify-center md:justify-end gap-3 w-full md:w-auto items-center">
-            <!-- 1. 태양광 예측 모달 트리거 버튼 -->
+            <!-- 1-1. 태양광 예측 모달 트리거 버튼 -->
             <button onclick="openModal()"
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/30 transition transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 border border-indigo-400/30 backdrop-blur-sm">
+                    class="bg-indigo-600 dark:bg-slate-800 hover:bg-indigo-700 dark:hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/30 transition transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 border border-indigo-400/30 backdrop-blur-sm">
                 <i class="fas fa-solar-panel"></i>
                 <span>태양광 예측</span>
             </button>
 
-            <!-- 태양광 예측 모달 (배경 다크모드 적용 안됨 - iframe 내부에서 처리) -->
+            <!-- 1-2. 태양광 예측 모달 (배경 다크모드 적용 안됨 - iframe 내부에서 처리) -->
             <div id="predictModal" class="fixed inset-0 z-50 hidden overflow-y-auto text-gray-800">
                 <div class="flex items-center justify-center min-h-screen p-4 text-center">
                     <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
@@ -85,6 +85,36 @@
                             <i class="fas fa-times text-lg"></i>
                         </button>
                         <iframe src="/predict-form" class="w-full h-[900px] border-none bg-transparent" id="predictFrame"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2-1. 위성 지도 버튼 (언어 버튼 대체) -->
+            <button onclick="openMapModal()"
+                    class="bg-blue-500 dark:bg-slate-800 hover:bg-blue-600 dark:hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95 flex items-center gap-2 border border-blue-400/30 backdrop-blur-sm">
+                <i class="fas fa-globe-asia"></i>
+                <span>위성 지도</span>
+            </button>
+
+            <!-- 2-2. [위성 지도 모달 -->
+            <div id="mapModal" class="fixed inset-0 z-50 hidden overflow-hidden text-gray-800">
+                <div class="flex items-center justify-center min-h-screen p-4 text-center">
+                    <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="closeMapModal()"></div>
+                    <div class="relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl transform transition-all w-full max-w-5xl h-[80vh] z-50 flex flex-col">
+
+                        <!-- 모달 헤더 -->
+                        <div class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                            <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-globe-asia text-blue-400"></i> 실시간 위성/레이더 영상</h3>
+                            <button onclick="closeMapModal()" class="text-gray-400 hover:text-white transition">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+
+                        <!-- Windy Embed Iframe -->
+                        <iframe src="https://embed.windy.com/embed2.html?lat=36.5&lon=127.5&detailLat=37.5&detailLon=127.0&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"
+                                class="w-full h-full border-none"
+                                id="windyFrame">
+                        </iframe>
                     </div>
                 </div>
             </div>
@@ -585,7 +615,7 @@
         syncIframeTheme(); // 토글 시 iframe 테마 동기화 호출
     }
 
-    // [NEW] iframe 내부 테마 동기화 함수
+    // iframe 내부 테마 동기화 함수
     function syncIframeTheme() {
         const iframe = document.getElementById('predictFrame');
         if (iframe && iframe.contentDocument) {
@@ -607,6 +637,20 @@
     document.getElementById('predictFrame').onload = function() {
         syncIframeTheme();
     };
+
+
+    // 위성 지도 모달 기능
+    function openMapModal() {
+        const modal = document.getElementById('mapModal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+    }
+    // 위성 모달 닫기 함수
+    function closeMapModal() {
+        const modal = document.getElementById('mapModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto'; // 배경 스크롤 허용
+    }
 
 
     // 2. AI 브리핑 음성 합성 기능
