@@ -33,17 +33,25 @@ class AiServerManager {
 
     private void startAiServer() {
         try {
-            // 경로 문제일 수 있으므로 절대 경로를 사용하거나 프로젝트 루트 확인
-            ProcessBuilder builder = new ProcessBuilder("python", "run_all.py");
+            // 1. OS에 따라 python 또는 py 선택 (윈도우는 py가 더 확실할 때가 많음)
+            String pythonCmd = System.getProperty("os.name").toLowerCase().contains("win") ? "python" : "python3";
 
-            // 현재 작업 디렉토리를 프로젝트 루트로 강제 설정
+            ProcessBuilder builder = new ProcessBuilder(pythonCmd, "run_all.py");
             builder.directory(new java.io.File(System.getProperty("user.dir")));
 
+            // 중요: 에러 출력을 표준 출력과 합쳐서 Java 콘솔에서 바로 보이게 함
+            builder.redirectErrorStream(true);
             builder.inheritIO();
+
             pythonProcess = builder.start();
 
-            System.out.println("🚀 [Auto-Start] 서버 기동 시도 (PID: " + pythonProcess.pid() + ")");
-            Thread.sleep(7000); // 로딩 시간이 길 수 있으니 7초로 늘려봄
+            // 프로세스가 시작하자마자 죽었는지 확인하는 로직 추가
+            Thread.sleep(1000);
+            if (!pythonProcess.isAlive()) {
+                System.err.println("❌ [Error] 파이썬 프로세스가 시작 직후 종료되었습니다. 종료 코드: " + pythonProcess.exitValue());
+            } else {
+                System.out.println("🚀 [Auto-Start] 서버 기동 성공 (PID: " + pythonProcess.pid() + ")");
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
