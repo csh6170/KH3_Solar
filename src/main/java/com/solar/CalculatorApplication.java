@@ -42,7 +42,7 @@ class AiServerManager {
             builder.inheritIO();
             pythonProcess = builder.start();
 
-            System.out.println("🚀 [Auto-Start] 서버 기동 시도 (PID: " + pythonProcess.pid() + ")");
+            System.out.println("🚀 [Auto-Start] 서버 기동 (PID: " + pythonProcess.pid() + ")");
             Thread.sleep(7000); // 로딩 시간이 길 수 있으니 7초로 늘려봄
 
         } catch (Exception e) {
