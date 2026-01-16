@@ -1,42 +1,33 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body th:fragment="copyright">
-
-<div class="text-center">
+<div th:fragment="copyright" class="text-center">
 
     <p class="mb-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
         Data Sources
     </p>
 
     <div class="flex flex-col space-y-1.5">
-
         <a href="https://www.data.go.kr/tcs/dss/selectFileDataDetailView.do?publicDataPk=15099650"
-           target="_blank"
-           class="text-xs text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center gap-1.5 group">
-            <i class="fas fa-building text-gray-300 group-hover:text-blue-500 transition-colors"></i>
+           target="_blank" class="text-xs text-gray-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-1.5 group">
+            <i class="fas fa-building text-gray-300 group-hover:text-blue-500"></i>
             <span>한국동서발전(주) 태양광 발전량 데이터</span>
         </a>
 
         <a href="https://www.data.go.kr/data/15084084/openapi.do"
-           target="_blank"
-           class="text-xs text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center gap-1.5 group">
-            <i class="fas fa-cloud-sun text-gray-300 group-hover:text-blue-500 transition-colors"></i>
+           target="_blank" class="text-xs text-gray-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-1.5 group">
+            <i class="fas fa-cloud-sun text-gray-300 group-hover:text-blue-500"></i>
             <span>기상청 단기예보 조회서비스</span>
         </a>
 
         <a href="https://data.kma.go.kr/data/grnd/selectAsosRltmList.do?pgmNo=36"
-           target="_blank"
-           class="text-xs text-gray-400 hover:text-blue-600 transition-colors duration-200 flex items-center justify-center gap-1.5 group">
-            <i class="fas fa-satellite-dish text-gray-300 group-hover:text-blue-500 transition-colors"></i>
+           target="_blank" class="text-xs text-gray-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-1.5 group">
+            <i class="fas fa-satellite-dish text-gray-300 group-hover:text-blue-500"></i>
             <span>기상자료개방포털 종관기상관측(ASOS)</span>
         </a>
-
     </div>
 
     <p class="mt-4 text-[10px] text-gray-300 font-medium">
         &copy; 2026 Solar AI Project. All rights reserved.
     </p>
 </div>
-
-</body>
 </html>

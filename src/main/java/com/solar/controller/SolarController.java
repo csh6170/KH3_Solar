@@ -90,6 +90,8 @@ public class SolarController {
                           @RequestParam double sunshine,
                           @RequestParam double lat,
                           @RequestParam double lon,
+                          @RequestParam String region1,
+                          @RequestParam String region2,
                           Model model) {
 
         System.out.println("===== ⚡ AI 발전량 예측 시뮬레이션 =====");
@@ -182,6 +184,10 @@ public class SolarController {
         model.addAttribute("co2", String.format("%.2f", co2));
         model.addAttribute("capacity", capacity);
         model.addAttribute("temp", temp);
+
+        // ✅ 지역 정보를 화면으로 전달 (Thymeleaf가 사용함)
+        model.addAttribute("region1", region1);
+        model.addAttribute("region2", region2);
 
         // ✅ [추가] 시간대별 HTML 문자열을 화면으로 보냄
         model.addAttribute("hourlyList", hourlyHtml.toString());

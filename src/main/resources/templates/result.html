@@ -6,9 +6,7 @@
     <title>예측 결과 분석</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 
     <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -16,109 +14,96 @@
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/shift-away.css"/>
 
     <style>
-        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; }
-
-        /* 툴팁 내부 스타일링 (Tippy 안의 HTML 콘텐츠용) */
-        .tippy-content b { font-weight: 700; color: #fbbf24; } /* 시간 강조 */
-        .tippy-box { background-color: #1f2937; font-size: 0.85rem; }
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        /* 툴팁 내부 스타일링: 폰트 크기 증가 */
+        .tippy-content { font-size: 1rem; }
+        .tippy-content b { font-weight: 700; color: #fbbf24; }
+        .tippy-box { background-color: #1f2937; border-radius: 12px; padding: 4px; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+<body class="bg-white h-screen p-0 overflow-hidden">
+<div class="w-full h-screen bg-white flex flex-col">
 
-<div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-
-    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-8 text-white text-center relative overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-8 text-white text-center relative overflow-hidden shrink-0">
         <div class="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
-        <div class="absolute bottom-0 left-0 -ml-10 -mb-10 w-32 h-32 bg-white opacity-10 rounded-full blur-xl"></div>
-
         <div class="relative z-10">
-            <div class="text-5xl mb-3 text-yellow-300 drop-shadow-md">
-                <i class="fas fa-chart-pie animate-bounce"></i>
+            <div class="text-6xl mb-2 text-yellow-300 drop-shadow-md">
+                <i class="fas fa-chart-pie animate-pulse"></i>
             </div>
             <h2 class="text-2xl font-bold tracking-tight">분석 결과 리포트</h2>
             <p class="text-blue-100 text-sm mt-2 font-medium opacity-90">
-                설비용량 <span class="font-bold text-white underline decoration-yellow-400 decoration-2 underline-offset-2" th:text="${capacity} + 'kW'"></span> 기준 예측
+                <i class="fas fa-location-dot mr-1"></i>
+                <span class="text-white font-bold" th:text="${region1} + ' ' + ${region2}">서울 강남구</span> |
+                <span class="font-bold text-white" th:text="${capacity} + 'kW'">3kW</span> 기준
             </p>
         </div>
     </div>
 
-    <div class="p-8 space-y-4">
+    <div class="p-6 space-y-3 flex-1 overflow-y-auto scrollbar-hide">
 
-        <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100 transition hover:shadow-md relative group">
-            <div class="flex justify-between items-start mb-2">
+        <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100 transition hover:shadow-md relative group">
+            <div class="flex justify-between items-start mb-1">
                 <h5 class="text-sm font-bold text-gray-500 uppercase tracking-wide flex items-center">
                     <i class="fas fa-bolt text-blue-500 mr-2"></i>내일 예상 발전량
                 </h5>
-                <button id="hourly-btn" class="text-blue-400 hover:text-blue-600 transition focus:outline-none">
+                <button id="hourly-btn" class="text-blue-400 hover:text-blue-600 focus:outline-none">
                     <i class="fas fa-search-plus text-lg"></i>
                 </button>
             </div>
-
             <div class="flex items-baseline">
                 <span class="text-4xl font-extrabold text-gray-900 tracking-tight" th:text="${gen}">0.00</span>
-                <span class="ml-2 text-lg font-bold text-gray-500">kWh</span>
+                <span class="ml-2 text-base font-bold text-gray-500">kWh</span>
             </div>
-
-            <p class="text-xs text-blue-400 mt-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <i class="fas fa-search-plus text-lg"></i> 아이콘을 눌러 시간대별 확인
+            <p class="text-xs text-blue-400 mt-1 font-medium">
+                <i class="fas fa-info-circle mr-1 text-xs"></i> 아이콘 클릭 시 상세 확인
             </p>
-
             <div id="hourly-content-template" style="display: none;">
                 <div class="text-left p-1 leading-relaxed" th:utext="${hourlyList}"></div>
             </div>
         </div>
 
-        <div class="bg-green-50 rounded-2xl p-6 border border-green-100 transition hover:shadow-md">
-            <div class="flex justify-between items-start mb-2">
+        <div class="bg-green-50 rounded-2xl p-5 border border-green-100 transition hover:shadow-md">
+            <div class="flex justify-between items-start mb-1">
                 <h5 class="text-sm font-bold text-gray-500 uppercase tracking-wide flex items-center">
                     <i class="fas fa-coins text-green-500 mr-2"></i>예상 전기요금 절약
                 </h5>
-                <button id="calc-info-btn" class="text-green-400 hover:text-green-600 transition focus:outline-none">
+                <button id="calc-info-btn" class="text-green-400 hover:text-green-600 focus:outline-none">
                     <i class="fas fa-circle-question text-lg"></i>
                 </button>
             </div>
-
             <div class="flex items-baseline">
                 <span class="text-4xl font-extrabold text-gray-900 tracking-tight" th:text="${money}">0</span>
-                <span class="ml-2 text-lg font-bold text-gray-500">원</span>
+                <span class="ml-2 text-base font-bold text-gray-500">원</span>
             </div>
-
-            <p class="text-xs text-green-600 mt-3 font-medium bg-green-100/50 inline-block px-2 py-1 rounded-md">
-                * 누진세 1단계 최저요금 기준 (보수적 산정)
+            <p class="text-xs text-green-600 mt-2 font-medium bg-green-100/50 inline-block px-2 py-0.5 rounded-md">
+                * 누진세 1단계 최저요금 기준
             </p>
         </div>
 
-        <hr class="border-gray-100 my-6">
-
-        <a href="/predict-form" class="block w-full bg-gray-900 hover:bg-black text-white text-center font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
+        <a href="/predict-form" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center font-bold py-3.5 rounded-xl shadow-lg transition transform hover:-translate-y-1 flex items-center justify-center gap-2 mt-2 text-base">
             <i class="fas fa-redo-alt text-sm"></i>
             <span>다시 계산하기</span>
         </a>
-
     </div>
 
-    <div class="bg-gray-50 p-4 text-center border-t border-gray-100 text-xs text-gray-400">
+    <div class="mt-auto bg-gray-50 p-6 text-center border-t border-gray-100 shrink-0">
         <div th:replace="~{footer :: copyright}"></div>
     </div>
 </div>
 
 <script>
-    // 1. 시간대별 상세 예측 (클릭 시 팝오버)
-    // Thymeleaf에서 렌더링된 HTML을 가져와서 툴팁 내용으로 설정
     const hourlyContent = document.getElementById('hourly-content-template').innerHTML;
-
     tippy('#hourly-btn', {
         content: hourlyContent,
-        allowHTML: true,           // HTML 태그 허용 (<br>, <b> 등)
-        trigger: 'click',          // 클릭 시 실행
-        placement: 'bottom-end',   // 위치
-        animation: 'shift-away',   // 애니메이션 효과
-        interactive: true,         // 툴팁 내부 클릭 가능 여부
-        theme: 'light-border',     // 테마 (필요시 커스텀 가능)
+        allowHTML: true,
+        trigger: 'click',
+        placement: 'bottom-end',
+        animation: 'shift-away',
+        interactive: true,
+        theme: 'light-border',
         maxWidth: 300,
     });
 
-    // 2. 계산식 설명 (마우스 오버 시 툴팁)
     tippy('#calc-info-btn', {
         content: '계산식: 예상 발전량 × 120원<br>(한전 주택용 1단계 최저요금 기준)',
         allowHTML: true,
@@ -126,10 +111,7 @@
         animation: 'shift-away',
     });
 
-    // 결과 리포트 페이지용 resetAll
     window.resetAll = function() {
-        // 결과 페이지에서는 입력 폼이 없으므로, 다시 입력 페이지로 이동시킵니다.
-        // 이렇게 하면 모달을 다시 열었을 때 첫 화면(시/도 선택)이 뜹니다.
         location.href = '/predict-form';
     };
 </script>
