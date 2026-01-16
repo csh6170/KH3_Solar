@@ -178,7 +178,7 @@ public class WeatherService {
         }
     }
 
-    // [Helper] 기상청 격자(Grid) -> 위경도(GPS) 변환 (Lambert Conformal Conic Projection)
+    // 기상청 격자(Grid) -> 위경도(GPS) 변환 (Lambert Conformal Conic Projection)
     private double[] convertGridToGps(int nx, int ny) {
         double RE = 6371.00877; // 지구 반경(km)
         double GRID = 5.0; // 격자 간격(km)

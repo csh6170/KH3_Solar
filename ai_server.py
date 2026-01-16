@@ -9,16 +9,17 @@ import numpy as np
 from contextlib import asynccontextmanager # lifespan을 위한 모듈
 
 
-# lifespan: 앱 시작/종료 시 실행될 로직
+# lifespan 정의: 앱 시작/종료 시 실행될 로직
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀🚀🚀🚀🚀 AI Server Application Started!")# 앱 시작 시 실행
+    # 앱 시작 시 실행
+    print("[파이썬 AI 서버 실행!] AI 서버를 \"시작\"합니다...............!!!!")
     yield
-    print("🛑🛑🛑🛑🛑 프로그램 종료: AI Server Application Shutdown.") # 앱 종료 시 실행
+    # 앱 종료 시 실행 (Ctrl+C 등)
+    print("[파이썬 AI 서버 종료!] AI 서버를 \"종료\"합니다...............!!!!")
 
-# FastAPI 앱 생성
-app = FastAPI(lifespan=lifespan)  # ✅ lifespan 연결 완료
-
+# FastAPI 앱 생성 시 lifespan 파라미터 주입 필수!
+app = FastAPI(lifespan=lifespan)
 # ================= 1. 옷차림 추천 모델 (분류 - Classification) =================
 # 학습 데이터 준비 (실제로는 CSV 파일 등에서 로드하지만, 학습용으로 직접 생성)
 # 0:맑음(강수없음), 1:비/눈
@@ -87,7 +88,7 @@ y_sensible = df_sensible['target']
 model_sensible = LinearRegression() # 선형 회귀 모델
 model_sensible.fit(X_sensible, y_sensible)
 
-print("✨✨ AI 모델 2종 학습 완료! (옷차림:DT, 체감온도:LinearRegression)✨✨")
+print("AI 모델 2종 학습 완료! (옷차림:DT, 체감온도:LinearRegression)")
 
 
 
@@ -105,8 +106,10 @@ def predict_outfit(req: WeatherRequest):
     if req.pty and req.pty != "0" and req.pty != "강수없음":
         rain_status = 1
 
-    # 예측 수행
-    prediction = model_cloth.predict([[req.temp, rain_status]])
+    # 예측 수행 / 리스트 대신 DataFrame으로 변환하여 예측 (Feature Name 경고 해결)
+    input_df = pd.DataFrame([[req.temp, rain_status]], columns=['temp', 'rain'])
+    
+    prediction = model_cloth.predict(input_df)
     result_text = prediction[0]
 
     # 파이썬 서버임을 티내기 위해 접두어 추가
@@ -121,9 +124,11 @@ class SensibleRequest(BaseModel):
 
 @app.post("/sensible")
 def predict_sensible_temp(req: SensibleRequest):
+    input_df = pd.DataFrame([[req.temp, req.hum, req.wind]], columns=['temp', 'hum', 'wind'])
+    
     # 입력된 데이터로 체감온도 예측
     # 입력값: [[기온, 습도, 풍속]]
-    predicted_value = model_sensible.predict([[req.temp, req.hum, req.wind]])
+    predicted_value = model_sensible.predict(input_df)
     
     # 소수점 1자리까지 반올림
     result = round(predicted_value[0], 1)
