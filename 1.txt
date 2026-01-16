@@ -1,0 +1,10 @@
+# 5000번 포트를 쓰는 PID(프로세스 ID) 찾기
+netstat -ano | findstr :5000
+
+# 출력된 결과 맨 오른쪽 숫자가 PID입니다. (예: 1234)
+# 해당 PID 강제 종료
+taskkill /F /PID 1234
+
+텔레그램 토큰 2가지
+7958973119:AAHMFjSkoqXfqBBm3mFvVXcPDq-kzG0ta8A
+8485655386:AAEIaVJ64fdxOW-JeSAcoKijoZ-tWd7EcKg
