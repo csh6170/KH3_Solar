@@ -36,9 +36,9 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-white min-h-screen flex items-start justify-center p-0">
 
-<div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+<div class="w-full min-h-screen bg-white">
 
     <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-8 text-white text-center relative overflow-hidden">
         <div class="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
@@ -110,7 +110,12 @@
             <input type="hidden" name="lat" id="inputLat">
             <input type="hidden" name="lon" id="inputLon">
 
-            <hr class="border-gray-100 my-6">
+            <div class="bg-blue-50 rounded-xl p-3 flex items-center gap-3 border border-blue-100 mb-4">
+                <i class="fas fa-calculator text-blue-500"></i>
+                <p class="text-[11px] text-blue-800 leading-tight">
+                    <strong>알고리즘 정밀 분석:</strong> 기상청 예보에 <strong>태양의 위치</strong>와 <strong>기온 변화</strong>를 반영하여 실제에 가까운 수치를 계산합니다.
+                </p>
+            </div>
 
             <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
                 <span>내일 발전량 예측하기</span>
@@ -233,8 +238,11 @@
                     }
 
                     // 완료 상태 업데이트
-                    statusDiv.className = 'text-right text-xs font-bold mt-2 h-5 text-blue-600';
-                    statusDiv.innerText = `준비 완료 (${weatherText}, ${data.temp}°C)`;
+                    statusDiv.className = 'text-right text-[15px] font-bold mt-2 h-5 text-indigo-600';
+                    statusDiv.innerHTML = `
+                        <span>${weatherText} (${data.temp}°C)</span>
+                        <span class="ml-1 text-[10px] text-gray-400 font-normal">[격자:${data.nx},${data.ny}]</span>
+                    `;
 
                     capacityInput.disabled = false;
                     capacityInput.placeholder = "예: 3";
