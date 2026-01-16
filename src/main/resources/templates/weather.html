@@ -71,7 +71,8 @@
         <div class="flex flex-wrap justify-center md:justify-end gap-3 w-full md:w-auto items-center">
             <!-- 1-1. 태양광 예측 모달 트리거 버튼 -->
             <button onclick="openModal()"
-                    class="bg-indigo-600 dark:bg-slate-800 hover:bg-indigo-700 dark:hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/30 transition transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 border border-indigo-400/30 backdrop-blur-sm">
+                    class="bg-indigo-600 dark:bg-slate-800 hover:bg-indigo-700 dark:hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-500/30 transition transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 border border-indigo-400/30 backdrop-blur-sm"
+                    title="태양광 발전 예측하기">
                 <i class="fas fa-solar-panel"></i>
                 <span>태양광 예측</span>
             </button>
@@ -91,12 +92,13 @@
 
             <!-- 2-1. 위성 지도 버튼 (언어 버튼 대체) -->
             <button onclick="openMapModal()"
-                    class="bg-blue-500 dark:bg-slate-800 hover:bg-blue-600 dark:hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95 flex items-center gap-2 border border-blue-400/30 backdrop-blur-sm">
+                    class="bg-blue-500 dark:bg-slate-800 hover:bg-blue-600 dark:hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95 flex items-center gap-2 border border-blue-400/30 backdrop-blur-sm"
+                    title="실시간 위성/레이더 영상 보기">
                 <i class="fas fa-globe-asia"></i>
                 <span>위성 지도</span>
             </button>
 
-            <!-- 2-2. [위성 지도 모달 -->
+            <!-- 2-2. 위성 지도 모달 -->
             <div id="mapModal" class="fixed inset-0 z-50 hidden overflow-hidden text-gray-800">
                 <div class="flex items-center justify-center min-h-screen p-4 text-center">
                     <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="closeMapModal()"></div>
@@ -135,7 +137,8 @@
 
             <!-- 4. 다크모드 토글 버튼 -->
             <button onclick="toggleDarkMode()"
-                    class="bg-white/20 hover:bg-white/30 text-white w-12 h-12 rounded-xl backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center transition-transform active:scale-95 group">
+                    class="bg-white/20 hover:bg-white/30 text-white w-12 h-12 rounded-xl backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center transition-transform active:scale-95 group"
+                    title="다크 모드 토글">
                 <i id="darkModeIcon" class="fas fa-sun text-xl group-hover:rotate-45 transition-transform duration-500"></i>
             </button>
         </div>
@@ -143,7 +146,8 @@
 
     <!-- 2. 메인 날씨 카드 -->
     <a href="https://www.kma.go.kr/w/iframe/dfs.do" target="_blank" class="block hover-card">
-        <div class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-8 shadow-2xl mb-6 flex flex-col md:flex-row items-center justify-between border border-white/50 dark:border-slate-700 transition-colors duration-300">
+        <div class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-8 shadow-2xl mb-6 flex flex-col md:flex-row items-center justify-between border border-white/50 dark:border-slate-700 transition-colors duration-300"
+            title="기상청 날씨누리 페이지로 이동">
             <div class="text-center md:text-left">
                 <h2 class="text-2xl font-bold mb-2 text-gray-700 dark:text-gray-200 flex items-center justify-center md:justify-start gap-2">
                     <i class="fas fa-location-dot text-blue-500"></i>
@@ -413,7 +417,7 @@
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- 8-1. 자외선 카드 -->
-            <a href="https://www.weather.go.kr/w/theme/daily-life/life-index.do" target="_blank" class="block hover-card">
+            <a href="https://www.weather.go.kr/w/theme/daily-life/life-index.do" target="_blank" class="block hover-card" title="기상청 날씨누리 페이지로 이동">
                 <div class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-orange-100/50 dark:border-slate-700 flex items-center justify-between hover:shadow-lg transition cursor-pointer h-full">
                     <div>
                         <div class="text-sm font-bold text-orange-500 mb-1 flex items-center gap-1"><i class="fas fa-sun"></i> 자외선 지수 <i class="fas fa-external-link-alt text-xs ml-1 opacity-50"></i></div>
@@ -425,7 +429,7 @@
             </a>
 
             <!-- 8-2. 미세먼지 카드 -->
-            <a href="https://www.airkorea.or.kr/" target="_blank" class="block hover-card">
+            <a href="https://www.airkorea.or.kr/" target="_blank" class="block hover-card" title="에어코리아 페이지로 이동">
                 <div class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-gray-100/50 dark:border-slate-700 flex items-center justify-between hover:shadow-lg transition cursor-pointer h-full">
                     <div>
                         <div class="text-sm font-bold text-gray-600 dark:text-gray-400 mb-1 flex items-center gap-1"><i class="fas fa-smog"></i> 미세먼지(PM10) <i class="fas fa-external-link-alt text-xs ml-1 opacity-50"></i></div>
@@ -437,7 +441,7 @@
             </a>
 
             <!-- 8-3.불쾌지수 카드 -->
-            <a href="https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=%EB%B6%88%EC%BE%8C%EC%A7%80%EC%88%98" target="_blank" class="block hover-card">
+            <a href="https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=%EB%B6%88%EC%BE%8C%EC%A7%80%EC%88%98" target="_blank" class="block hover-card" title="네이버 불쾌지수 검색 결과로 이동">
                 <div class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-red-100/50 dark:border-slate-700 flex items-center justify-between hover:shadow-lg transition cursor-pointer h-full">
                     <div>
                         <div class="text-sm font-bold text-red-500 mb-1 flex items-center gap-1"><i class="fas fa-tired"></i> 불쾌지수 <i class="fas fa-external-link-alt text-xs ml-1 opacity-50"></i></div>
@@ -449,7 +453,7 @@
             </a>
 
             <!-- 8-4.꽃가루 농도 위험지수 카드 -->
-            <a href="http://www.nims.go.kr/?sub_num=1033" target="_blank" class="block hover-card">
+            <a href="http://www.nims.go.kr/?sub_num=1033" target="_blank" class="block hover-card" title="국립환경과학원 꽃가루 정보 페이지로 이동">
                 <div class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-md border border-green-100/50 flex items-center justify-between hover:shadow-lg transition">
                     <div>
                         <div class="text-sm font-bold text-green-600 mb-1 flex items-center gap-1"><i class="fas fa-tree"></i> 꽃가루 농도</div>
@@ -524,10 +528,12 @@
 
                     <!-- 지난 기록 바로가기 버튼 추가 -->
                     <div class="flex flex-wrap gap-3">
-                        <a href="/earthquake" class="inline-flex items-center text-sm font-bold text-green-700 dark:text-green-200 bg-white/60 dark:bg-green-800/40 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-green-800/60 transition shadow-sm border border-green-200/50 dark:border-green-700/50">
+                        <a href="/earthquake" class="inline-flex items-center text-sm font-bold text-green-700 dark:text-green-200 bg-white/60 dark:bg-green-800/40 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-green-800/60 transition shadow-sm border border-green-200/50 dark:border-green-700/50"
+                        title="지난 지진 기록 페이지로 이동">
                             <i class="fas fa-rss mr-2"></i>지난 지진 기록
                         </a>
-                        <a href="/typhoon" class="inline-flex items-center text-sm font-bold text-green-700 dark:text-green-200 bg-white/60 dark:bg-green-800/40 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-green-800/60 transition shadow-sm border border-green-200/50 dark:border-green-700/50">
+                        <a href="/typhoon" class="inline-flex items-center text-sm font-bold text-green-700 dark:text-green-200 bg-white/60 dark:bg-green-800/40 px-4 py-2 rounded-lg hover:bg-white dark:hover:bg-green-800/60 transition shadow-sm border border-green-200/50 dark:border-green-700/50"
+                        title="지난 태풍 기록 페이지로 이동">
                             <i class="fas fa-wind mr-2"></i>지난 태풍 기록
                         </a>
                     </div>
