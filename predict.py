@@ -246,7 +246,7 @@ if __name__ == '__main__':
 
     # [CASE B: 텔레그램 봇]
     else:
-        print("🤖 봇 구동 준비 중...")
+        print(" 봇 구동 준비 중...")
         try:
             from telegram import Update
             from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes

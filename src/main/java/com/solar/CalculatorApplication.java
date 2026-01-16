@@ -33,19 +33,19 @@ class AiServerManager {
 
     private void startAiServer() {
         try {
-            // [중요] 파이썬 실행 명령어 및 경로 설정
-            // 가상환경을 쓴다면 "venv/bin/python" 처럼 전체 경로를 입력해야 할 수도 있음
-            // ai_server.py가 프로젝트 루트(build.gradle이 있는 곳)에 있음으로 경로 설정
-            ProcessBuilder builder = new ProcessBuilder("python", "ai_server.py");
+            // 경로 문제일 수 있으므로 절대 경로를 사용하거나 프로젝트 루트 확인
+            ProcessBuilder builder = new ProcessBuilder("python", "run_all.py");
 
-            // 파이썬 서버의 로그를 자바 콘솔에도 같이 출력하게 설정
+            // 현재 작업 디렉토리를 프로젝트 루트로 강제 설정
+            builder.directory(new java.io.File(System.getProperty("user.dir")));
+
             builder.inheritIO();
-
             pythonProcess = builder.start();
-            System.out.println("🚀 [Auto-Start] Python AI Server가 시작되었습니다. (PID: " + pythonProcess.pid() + ")");
+
+            System.out.println("🚀 [Auto-Start] 서버 기동 시도 (PID: " + pythonProcess.pid() + ")");
+            Thread.sleep(7000); // 로딩 시간이 길 수 있으니 7초로 늘려봄
 
         } catch (Exception e) {
-            System.err.println("❌ Python AI Server 시작 중 오류 발생: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -54,8 +54,24 @@ class AiServerManager {
     @PreDestroy
     public void stopAiServer() {
         if (pythonProcess != null && pythonProcess.isAlive()) {
-            pythonProcess.destroy(); // 프로세스 종료 시그널 전송
-            System.out.println("🛑 [Auto-Stop] Python AI Server가 종료되었습니다.");
+            try {
+                // 1. 현재 실행 중인 파이썬 프로세스의 PID 추출
+                String pid = String.valueOf(pythonProcess.pid());
+
+                // 2. Windows 명령어로 트리(/T) 전체를 강제(/F) 종료
+                // 이 명령이 실행되면 run_all.py뿐만 아니라 그 자식인 ai_server, predict도 모두 종료됩니다.
+                Process killProcess = Runtime.getRuntime().exec("taskkill /F /T /PID " + pid);
+
+                // 3. 종료 명령이 완료될 때까지 최대 5초 대기 (응답 없음 방지)
+                killProcess.waitFor();
+
+                System.out.println("🛑 [Auto-Stop] Python AI Server 및 모든 자식 프로세스가 정리되었습니다. (PID: " + pid + ")");
+
+            } catch (Exception e) {
+                // 만약 taskkill 명령이 실패할 경우를 대비한 예외 처리
+                System.err.println("❌ 강제 종료 중 오류 발생, 일반 종료를 시도합니다: " + e.getMessage());
+                pythonProcess.destroyForcibly();
+            }
         }
     }
     // ============= AI 서버 프로세스 관리자 끝 =============
