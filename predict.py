@@ -224,8 +224,8 @@ if __name__ == '__main__':
         except ImportError:
             sys.exit(1)
 
-        #TOKEN = '7958973119:AAHMFjSkoqXfqBBm3mFvVXcPDq-kzG0ta8A'
-        TOKEN = '8485655386:AAEIaVJ64fdxOW-JeSAcoKijoZ-tWd7EcKg'
+        TOKEN = '7958973119:AAHMFjSkoqXfqBBm3mFvVXcPDq-kzG0ta8A'
+        # TOKEN = '8485655386:AAEIaVJ64fdxOW-JeSAcoKijoZ-tWd7EcKg'
 
         async def predict_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             now_str = datetime.datetime.now().strftime("%H:%M:%S")
