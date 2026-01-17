@@ -38,7 +38,7 @@ public class TelegramBotRunner {
         String projectPath = System.getProperty("user.dir");
 
         // ---------------------------------------------------------
-        // 3. 텔레그램 봇 실행 (predict.py)
+        // 1. 텔레그램 봇 실행 (predict.py)
         // ---------------------------------------------------------
         try {
             String botScriptPath = projectPath + File.separator + "predict.py";
@@ -55,7 +55,7 @@ public class TelegramBotRunner {
         }
 
         // ---------------------------------------------------------
-        // 4. AI API 서버 실행 (ai_server.py)
+        // 2. AI API 서버 실행 (ai_server.py)
         // ---------------------------------------------------------
         try {
             String apiScriptPath = projectPath + File.separator + "ai_server.py";
