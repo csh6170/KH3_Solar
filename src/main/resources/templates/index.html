@@ -6,15 +6,23 @@
     <title>AI 태양광 발전 예측</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- [Dark Mode Config] -->
     <script>
         tailwind.config = { darkMode: 'class' }
     </script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; }
+        body { font-family: 'Noto Sans KR', sans-serif; transition: background-color 0.3s, color 0.3s; }
+
+        /* w.html 스타일의 스크롤바 숨김 처리 */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 로딩 스피너 (Bootstrap 제거로 인해 수동 구현) */
         .spinner-border {
             display: inline-block;
             width: 1rem;
@@ -28,11 +36,11 @@
         @keyframes spinner-border { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-white min-h-screen p-0">
+<body class="bg-white dark:bg-slate-900 min-h-screen p-0 text-gray-800 dark:text-gray-100">
 
-<div class="w-full min-h-screen bg-white flex flex-col">
+<div class="w-full min-h-screen bg-white dark:bg-slate-900 flex flex-col transition-colors duration-300">
 
-    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-8 text-white text-center relative overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-8 text-white text-center relative overflow-hidden shrink-0">
         <div class="relative z-10">
             <div class="text-6xl mb-4 text-yellow-300 drop-shadow-md">
                 <i class="fas fa-solar-panel animate-pulse"></i>
@@ -46,35 +54,35 @@
         <form action="/predict" method="get" id="predictForm" class="space-y-6">
 
             <div>
-                <label class="block text-gray-700 font-bold mb-2 flex items-center text-sm">
+                <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 flex items-center text-sm">
                     <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>위치 선택
                 </label>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="relative">
-                        <select id="region1" name="region1" class="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 font-medium outline-none transition appearance-none">
+                        <select id="region1" name="region1" class="w-full p-3 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-white font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition appearance-none">
                             <option value="">시/도</option>
                             <option th:each="r : ${region1List}" th:value="${r}" th:text="${r}"></option>
                         </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"><i class="fas fa-chevron-down text-xs"></i></div>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
                     </div>
 
                     <div class="relative">
-                        <select id="region2" name="region2" disabled class="w-full p-3 bg-gray-100 rounded-xl border border-gray-200 text-gray-400 font-medium outline-none transition appearance-none disabled:opacity-70 disabled:cursor-not-allowed">
+                        <select id="region2" name="region2" disabled class="w-full p-3 bg-gray-100 dark:bg-slate-700/50 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-400 dark:text-gray-500 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none disabled:opacity-70 disabled:cursor-not-allowed">
                             <option value="">시/구/군</option>
                         </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 dark:text-gray-500"><i class="fas fa-chevron-down text-xs"></i></div>
                     </div>
                 </div>
-                <div id="weatherStatus" class="text-right text-xs font-bold mt-2 h-5"></div>
+                <div id="weatherStatus" class="text-right text-xs font-bold mt-2 h-5 text-gray-500 dark:text-gray-400"></div>
             </div>
 
             <div>
-                <label class="block text-gray-700 font-bold mb-2 flex items-center text-sm">
+                <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2 flex items-center text-sm">
                     <i class="fas fa-bolt text-yellow-500 mr-2"></i>설비 용량 (kW)
                 </label>
                 <div class="relative">
                     <input type="number" name="capacity" id="capacity" step="0.1" disabled
-                           class="w-full p-4 pl-12 bg-gray-100 rounded-xl border border-gray-200 text-gray-800 font-bold placeholder-gray-400 outline-none transition disabled:cursor-not-allowed"
+                           class="w-full p-4 pl-12 bg-gray-100 dark:bg-slate-700/50 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white font-bold placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition disabled:cursor-not-allowed"
                            placeholder="지역 선택 후 입력 가능">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-plug text-gray-400"></i></div>
                 </div>
@@ -90,9 +98,9 @@
             <input type="hidden" name="lat" id="inputLat">
             <input type="hidden" name="lon" id="inputLon">
 
-            <div class="bg-blue-50 rounded-xl p-3 flex items-center gap-3 border border-blue-100 mb-4">
+            <div class="bg-blue-50 dark:bg-slate-800 rounded-xl p-3 flex items-center gap-3 border border-blue-100 dark:border-slate-700 mb-4 transition-colors">
                 <i class="fas fa-calculator text-blue-500"></i>
-                <p class="text-[15px] text-blue-800 leading-tight">
+                <p class="text-[15px] text-blue-800 dark:text-blue-300 leading-tight">
                     <strong>알고리즘 정밀 분석:</strong> 기상청의 내일 날씨(12시 기준)와 <strong>최저/최고 기온</strong>을 반영하여 예측합니다.
                 </p>
             </div>
@@ -104,7 +112,7 @@
         </form>
     </div>
 
-    <div class="mt-auto bg-gray-50 p-6 text-center border-t border-gray-100">
+    <div class="mt-auto bg-gray-50 dark:bg-slate-800 p-6 text-center border-t border-gray-100 dark:border-slate-700 transition-colors">
         <div th:replace="~{footer :: copyright}"></div>
     </div>
 </div>
@@ -125,8 +133,10 @@
         capacityInput.disabled = true;
         capacityInput.value = '';
         capacityInput.placeholder = "지역 선택 후 입력 가능";
-        capacityInput.classList.add('bg-gray-100');
-        capacityInput.classList.remove('bg-white');
+
+        // 다크모드 클래스 토글 추가
+        capacityInput.classList.add('bg-gray-100', 'dark:bg-slate-700/50');
+        capacityInput.classList.remove('bg-white', 'dark:bg-slate-800');
 
         resetWeatherInputs();
 
@@ -141,13 +151,14 @@
                         region2Select.appendChild(option);
                     });
                     region2Select.disabled = false;
-                    region2Select.classList.remove('bg-gray-100', 'text-gray-400');
-                    region2Select.classList.add('bg-gray-50', 'text-gray-700');
+                    // 다크모드 클래스 토글 추가
+                    region2Select.classList.remove('bg-gray-100', 'text-gray-400', 'dark:bg-slate-700/50', 'dark:text-gray-500');
+                    region2Select.classList.add('bg-gray-50', 'text-gray-700', 'dark:bg-slate-800', 'dark:text-white');
                 });
         }
     });
 
-    // [2] 시/구/군 선택 시 -> 날씨 조회 (핵심 수정 부분)
+    // [2] 시/구/군 선택 시 -> 날씨 조회
     region2Select.addEventListener('change', function() {
         const r1 = region1Select.value;
         const r2 = this.value;
@@ -155,7 +166,7 @@
         if (!r1 || !r2) return;
 
         capacityInput.disabled = true;
-        statusDiv.className = 'text-right text-xs font-bold mt-2 h-5 text-gray-500';
+        statusDiv.className = 'text-right text-xs font-bold mt-2 h-5 text-gray-500 dark:text-gray-400';
         statusDiv.innerHTML = '<span class="spinner-border"></span> 기상청 데이터 조회 중...';
 
         fetch(`/api/weather?region1=${encodeURIComponent(r1)}&region2=${encodeURIComponent(r2)}`)
@@ -166,9 +177,7 @@
                     statusDiv.innerText = '❌ 날씨 불러오기 실패';
                     Swal.fire('오류', data.error, 'error');
                 } else {
-                    // [중요] Hidden Input에는 AI 계산용 '평균 기온(temp)'를 넣습니다.
                     document.getElementById('inputTemp').value = data.temp;
-
                     document.getElementById('inputCloud').value = data.cloud;
                     document.getElementById('inputRadiation').value = data.radiation;
                     document.getElementById('inputHumidity').value = data.humidity;
@@ -179,12 +188,9 @@
                     document.getElementById('inputLat').value = data.lat;
                     document.getElementById('inputLon').value = data.lon;
 
-                    // [UI 표시용] 최저/최고 기온 추출 (없으면 ?로 표시)
-                    // Java Service에서 minTemp, maxTemp를 보내주므로 이를 활용
                     const minT = data.minTemp !== undefined ? data.minTemp : '?';
                     const maxT = data.maxTemp !== undefined ? data.maxTemp : '?';
 
-                    // 날씨 텍스트 로직
                     let weatherText = "맑음 ☀️";
                     const pop = data.pop ? parseInt(data.pop) : 0;
                     const cloud = parseFloat(data.cloud) || 0;
@@ -200,17 +206,18 @@
                         else weatherText = "맑음 ☀️";
                     }
 
-                    // [핵심 변경] 화면에는 "최저 / 최고" 기온을 보여줍니다.
-                    statusDiv.className = 'text-right text-[15px] font-bold mt-2 h-5 text-indigo-600';
+                    statusDiv.className = 'text-right text-[15px] font-bold mt-2 h-5 text-indigo-600 dark:text-indigo-400';
                     statusDiv.innerHTML = `
                         <span>${weatherText} (📉${minT}°C / 📈${maxT}°C)</span>
-                        <span class="ml-1 text-[10px] text-gray-400 font-normal">[격자:${data.nx},${data.ny}]</span>
+                        <span class="ml-1 text-[10px] text-gray-400 dark:text-gray-500 font-normal">[격자:${data.nx},${data.ny}]</span>
                     `;
 
                     capacityInput.disabled = false;
                     capacityInput.placeholder = "예: 3";
-                    capacityInput.classList.remove('bg-gray-100');
-                    capacityInput.classList.add('bg-white');
+
+                    // 다크모드 클래스 토글 추가
+                    capacityInput.classList.remove('bg-gray-100', 'dark:bg-slate-700/50');
+                    capacityInput.classList.add('bg-white', 'dark:bg-slate-800');
                     capacityInput.focus();
                 }
             })
@@ -254,7 +261,7 @@
 
         Swal.fire({
             title: '발전량 예측 중...',
-            text: 'AI가 내일 날씨를 분석하고 있습니다.',
+            text: 'AI가 날씨 데이터를 바탕으로 분석하고 있습니다.',
             icon: 'info',
             allowOutsideClick: false,
             showConfirmButton: false,
@@ -265,6 +272,30 @@
 
         this.submit();
     });
+
+    window.resetAll = function() {
+        const form = document.getElementById('predictForm');
+        if (form) form.reset();
+
+        const region2Select = document.getElementById('region2');
+        const capacityInput = document.getElementById('capacity');
+        const statusDiv = document.getElementById('weatherStatus');
+
+        if (region2Select) {
+            region2Select.innerHTML = '<option value="">시/구/군</option>';
+            region2Select.disabled = true;
+            region2Select.classList.add('bg-gray-100', 'text-gray-400', 'dark:bg-slate-700/50', 'dark:text-gray-500');
+            region2Select.classList.remove('bg-gray-50', 'dark:bg-slate-800', 'dark:text-white');
+        }
+
+        if (capacityInput) {
+            capacityInput.disabled = true;
+            capacityInput.placeholder = "지역 선택 후 입력 가능";
+            capacityInput.classList.add('bg-gray-100', 'dark:bg-slate-700/50');
+            capacityInput.classList.remove('bg-white', 'dark:bg-slate-800');
+        }
+        if (statusDiv) statusDiv.innerText = '';
+    };
 </script>
 
 </body>

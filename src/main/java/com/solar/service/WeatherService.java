@@ -31,6 +31,9 @@ import java.util.concurrent.Executors;
 public class WeatherService {
 
     private final ClothingService clothingService;
+    private final BriefingService briefingService;
+    private final DjService djService;
+    private final SensibleTempService sensibleTempService;
 
     // [최적화] ObjectMapper를 매번 생성하지 않고 재사용
     private final ObjectMapper mapper = new ObjectMapper();
@@ -80,6 +83,7 @@ public class WeatherService {
             try { fetchUltraSrtForecast(dto, nx, ny); } catch (Exception e) { log.error("초단기예보 실패", e); }
         }, executor);
 
+        // 생활기상지수, 꽃가루지수, 일출일몰, 미세먼지, 특보, 지진, 태풍 등도 병렬 처리
         CompletableFuture<Void> livingTask = CompletableFuture.runAsync(() -> fetchLivingWeather(dto, areaNo), executor);
         CompletableFuture<Void> pollenTask = CompletableFuture.runAsync(() -> fetchPollenIndex(dto, areaNo), executor);
         CompletableFuture<Void> sunTask = CompletableFuture.runAsync(() -> fetchSunriseSunset(dto, nx, ny), executor);
@@ -95,27 +99,37 @@ public class WeatherService {
                 sunTask, dustTask, warnTask, earthquakeTask, typhoonTask
         ).join();
 
-        // 3. 수집된 데이터를 바탕으로 로직 수행
-        // (빠른 로컬 연산은 동기적으로 수행해도 무방하지만, 외부 호출이 있는 경우 다시 비동기 처리)
-        fetchSensibleTemp(dto);         // 4. 체감온도 예측 (AI 서버 요청 - 단일 요청이라 동기 처리해도 무방하나 병렬도 가능)
-        calculateDiscomfortIndex(dto);  // 5. 불쾌지수 계산 (자체 로직)
 
-        // 4. AI 관련 기능 (브리핑, DJ) 병렬 호출
-        CompletableFuture<Void> briefingTask = CompletableFuture.runAsync(() -> fetchAiBriefing(dto), executor);
-        CompletableFuture<Void> djTask = CompletableFuture.runAsync(() -> fetchAiDj(dto), executor);
+        // 3. [Fallback 안전장치]: 분리된 Service를 사용하여 안전하게 AI 기능 호출
 
-        // 5. AI 옷차림 (로컬 서비스 로직)
+        // (1) 체감온도 (Service 호출)
+        String sensible = sensibleTempService.getSensibleTemp(dto.getTMP(), dto.getREH(), dto.getWSD());
+        dto.setSensibleTemp(sensible);
+
+        // (2) 불쾌지수 (자체 로직 - WeatherService 내부에 유지하거나 별도 유틸로 분리 가능)
+        calculateDiscomfortIndex(dto);
+
+        // (3) AI 기능 병렬 호출 (Service 사용)
+        CompletableFuture<Void> briefingTask = CompletableFuture.runAsync(() -> {
+            String script = briefingService.getBriefing(dto.getTMP(), dto.getSKY(), dto.getPTY(), dto.getPOP());
+            dto.setAiBriefing(script);
+        }, executor);
+
+        CompletableFuture<Void> djTask = CompletableFuture.runAsync(() -> {
+            djService.setMusicRecommendation(dto);
+        }, executor);
+
+        // (4) 옷차림 (이미 Service 사용 중)
         String recommendation = clothingService.recommendOutfit(dto.getTMP(), dto.getPTY(), dto.getWSD());
         String icon = clothingService.getOutfitIcon(dto.getTMP());
         dto.setClothingRecommendation(recommendation);
         dto.setOutfitIcon(icon);
 
-        selectBgImage(dto); // 배경 이미지 선택
+        selectBgImage(dto); // 배경 이미지 선택 로직
 
-        // AI 작업 완료 대기
-        CompletableFuture.allOf(briefingTask, djTask).join();
+        CompletableFuture.allOf(briefingTask, djTask).join(); // AI 작업 완료 대기
 
-        return dto;
+        return dto; // 최종 결과 반환
     }
 
     // ================= 일출/일몰 시간 조회 및 태양/달 진행도 계산 로직 =================
