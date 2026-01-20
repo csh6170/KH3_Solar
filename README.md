@@ -1,5 +1,3 @@
-
-```markdown
 # ☀️ Solar & Smart Weather Assistant
 
 > **Java Spring Boot x Python AI Hybrid Project**
@@ -74,51 +72,36 @@ graph TD
     Service -->|CompletableFuture (Parallel)| KMA
     Controller -->|Request Prediction| FastAPI
     FastAPI -->|JSON Response| Controller
-
 ```
 
 ### 🛠️ 기술적 차별점 (Technical Highlights)
+1.  **Process Orchestration (`TelegramBotRunner.java`)**:
+    * Spring Boot 서버 구동 시 Python 가상환경을 감지하고, 필요한 라이브러리(`pandas`, `scikit-learn` 등)가 없으면 **자동으로 설치(`pip install`)** 후 서버를 실행합니다.
+    * 서버 종료 시 좀비 프로세스가 남지 않도록 Python 프로세스를 깔끔하게 정리(`taskkill`)합니다.
 
-1. **Process Orchestration (`TelegramBotRunner.java`)**
-* Spring Boot 서버 구동 시 Python 가상환경을 감지하고, 필요한 라이브러리(`pandas`, `scikit-learn` 등)가 없으면 **자동으로 설치(`pip install`)** 후 서버를 실행합니다.
-* 서버 종료 시 좀비 프로세스가 남지 않도록 Python 프로세스를 깔끔하게 정리(`taskkill`)합니다.
+2.  **Concurrency & Performance**:
+    * `CompletableFuture`와 `ExecutorService`를 활용해 **9개 이상의 외부 API(단기예보, 초단기예보, 미세먼지, 지진 등)를 병렬로 호출**하여 응답 속도를 획기적으로 단축했습니다.
 
-
-2. **Concurrency & Performance**
-* `CompletableFuture`와 `ExecutorService`를 활용해 **9개 이상의 외부 API(단기예보, 초단기예보, 미세먼지, 지진 등)를 병렬로 호출**하여 응답 속도를 획기적으로 단축했습니다.
-
-
-3. **Robust Fallback System**
-* Python 서버나 외부 API 장애 발생 시, Java 내부에 구현된 수학적 공식(윈드칠, WBGT 등)과 하드코딩된 로직으로 자동 전환되어 **중단 없는 서비스**를 보장합니다.
-
-
+3.  **Robust Fallback System**:
+    * Python 서버나 외부 API 장애 발생 시, Java 내부에 구현된 수학적 공식(윈드칠, WBGT 등)과 하드코딩된 로직으로 자동 전환되어 **중단 없는 서비스**를 보장합니다.
 
 ---
 
 ## 💻 실행 화면 (Screenshots)
 
 | 메인 대시보드 (Day/Night) | 태양광 발전 예측 결과 |
-| --- | --- |
-| 
-
-<br> *실시간 날씨, AI DJ, 태양 이동 경로* | 
-
-<br> *발전량, 수익 계산, 상세 시간별 효율* |
+| :---: | :---: |
+| ![메인화면](./images/main_dashboard.png) <br> *실시간 날씨, AI DJ, 태양 이동 경로* | ![결과화면](./images/solar_result.png) <br> *발전량, 수익 계산, 상세 시간별 효율* |
 
 | 옷차림 & AI 브리핑 | 재난 안전 상황실 |
-| --- | --- |
-| 
-
-<br> *Decision Tree 기반 옷차림 추천* | 
-
-<br> *지진/태풍 실시간 거리 계산* |
+| :---: | :---: |
+| ![옷차림](./images/ai_lifestyle.png) <br> *Decision Tree 기반 옷차림 추천* | ![재난정보](./images/disaster_safety.png) <br> *지진/태풍 실시간 거리 계산* |
 
 ---
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
 ### Backend (Java)
-
 | Category | Technology | Description |
 | --- | --- | --- |
 | **Language** | Java 25 | 최신 Java 기능 활용 |
@@ -128,7 +111,6 @@ graph TD
 | **Async & Web** | Spring WebFlux, CompletableFuture | Non-blocking API 호출 및 병렬 처리 |
 
 ### AI & Data Science (Python)
-
 | Category | Technology | Description |
 | --- | --- | --- |
 | **Server** | FastAPI | 경량화된 고성능 AI 모델 서빙 (`ai_server.py`) |
@@ -137,14 +119,12 @@ graph TD
 | **Bot** | Python-Telegram-Bot | 실시간 알림 서비스 (`predict.py`) |
 
 ### Frontend
-
 * **Thymeleaf**: Server-side Rendering
 * **Tailwind CSS**: Utility-first styling (Dark mode support)
 * **Chart.js**: 기온/습도 데이터 시각화
 * **SweetAlert2**: 모던한 알림 팝업
 
 ### Data Source
-
 * **기상청 공공데이터포털**: 단기/초단기 예보, 생활기상지수, 지진/태풍 정보, 미세먼지 등
 * **Sunrise-Sunset API**: 일출/일몰 시간 정밀 계산
 * **YouTube**: 날씨별 음악 추천 연동
@@ -153,63 +133,38 @@ graph TD
 
 ## 🔧 설치 및 실행 방법 (Installation)
 
-1. **프로젝트 클론**
-```bash
-git clone [https://github.com/your-username/solar-weather-assistant.git](https://github.com/your-username/solar-weather-assistant.git)
-cd solar-weather-assistant
+1.  **프로젝트 클론**
+    ```bash
+    git clone [https://github.com/your-username/solar-weather-assistant.git](https://github.com/your-username/solar-weather-assistant.git)
+    cd solar-weather-assistant
+    ```
 
-```
+2.  **환경 설정**
+    * `src/main/resources/application.properties` 파일에서 DB 설정을 확인합니다.
+    * `WeatherService.java`, `TomorrowWeatherService.java` 등의 파일 내 API Key를 본인의 공공데이터포털 키로 교체합니다.
 
+3.  **애플리케이션 실행**
+    * Java JDK 25가 설치되어 있어야 합니다.
+    * 별도의 Python 실행이 필요 없습니다. Spring Boot가 자동으로 Python 환경을 구성하고 실행합니다.
+    ```bash
+    ./gradlew bootRun
+    ```
 
-2. **환경 설정**
-* `src/main/resources/application.properties` 파일에서 DB 설정을 확인합니다.
-* `WeatherService.java`, `TomorrowWeatherService.java` 등의 파일 내 API Key를 본인의 공공데이터포털 키로 교체합니다.
-
-
-3. **애플리케이션 실행**
-* Java JDK 25가 설치되어 있어야 합니다.
-* 별도의 Python 실행이 필요 없습니다. Spring Boot가 자동으로 Python 환경을 구성하고 실행합니다.
-
-
-```bash
-./gradlew bootRun
-
-```
-
-
-4. **접속**
-* 웹 대시보드: `http://localhost:8080`
-* AI 서버(자동실행): `http://localhost:5000`
-
-
+4.  **접속**
+    * 웹 대시보드: `http://localhost:8080`
+    * AI 서버(자동실행): `http://localhost:5000`
 
 ---
 
 ## 👨‍💻 개발 팀 (Team)
 
 | 팀원 | 담당 역할 및 기여 (Role & Contribution) |
-| --- | --- |
-| **[본인 이름]** | **☀️ Process Architect & Solar Engine Lead**<br>
-
-<br>• **Process Orchestration:** Java-Python 프로세스 자동 관리 및 라이브러리 오토 인스톨러(`TelegramBotRunner`) 개발<br>
-
-<br>• **Solar Logic:** 태양의 위치(고도각/시간각) 기반 이론적 일사량 산출 알고리즘 및 경제성 분석 구현<br>
-
-<br>• **Telegram Bot:** Python 봇(`predict.py`) 개발 및 실시간 발전량 알림 서비스 구현 |
-| **[팀원 이름]** | **🏗️ High-Performance Backend & Frontend**<br>
-
-<br>• **Async Performance:** `CompletableFuture`를 활용한 9개 외부 API 병렬 처리 및 성능 최적화 구현<br>
-
-<br>• **Weather & Disaster:** 기상청 API 연동, 지진/태풍 거리 계산 로직 및 옷차림/DJ/체감온도 서비스 개발<br>
-
-<br>• **Frontend Engineering:** Tailwind CSS 기반 반응형 UI, 다크모드 및 `Chart.js` 시각화 구현 |
+| :---: | :--- |
+| **[본인 이름]** | **☀️ Solar AI Engine & Bot Developer**<br>• **Solar Logic:** 태양의 위치(고도각/시간각) 기반 이론적 일사량 산출 알고리즘 및 경제성 분석 구현<br>• **Telegram Bot:** Python 봇(`predict.py`) 개발 및 실시간 발전량 알림 서비스 구현<br>• **View Integration:** 태양광 발전 예측 결과 화면(`result.html`) 및 봇 연동 UI 개발 |
+| **[팀원 이름]** | **🏗️ Core Backend & Lifestyle Service**<br>• **Architecture:** Spring Boot 메인 구조 설계, 프로세스 관리(`TelegramBotRunner`) 및 비동기 API 처리 구현<br>• **Weather & Disaster:** 기상청 API 연동, 지진/태풍 거리 계산 로직 및 옷차림/DJ/체감온도 서비스 개발<br>• **Frontend:** 메인 대시보드(`weather.html`), 재난 상황판(`earthquake.html`) 등 주요 웹 뷰 구현 |
 
 ---
 
 ## 📝 License
 
 This project is licensed under the MIT License.
-
-```
-
-```
