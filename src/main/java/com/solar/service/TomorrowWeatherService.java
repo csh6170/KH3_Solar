@@ -17,7 +17,7 @@ import java.util.Map;
 public class TomorrowWeatherService {
 
     // 🔑 Open API 인증 키 (Service Key)
-    private static final String SERVICE_KEY = "860d22d5afed47ba3bd53eb2e86fb3f152fa17a30ec99d05c043412e5e2d8d05";
+    private static final String SERVICE_KEY = "your_key";
     // 🌐 기상청 단기예보 조회 URL
     private static final String API_URL = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
 

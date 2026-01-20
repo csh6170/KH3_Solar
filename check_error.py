@@ -3,7 +3,7 @@ import datetime
 import json
 
 # ⚠️ 여기에 사용 중인 인증키를 넣으세요
-SERVICE_KEY = "860d22d5afed47ba3bd53eb2e86fb3f152fa17a30ec99d05c043412e5e2d8d05"
+SERVICE_KEY = "your_key"
 
 # 서울 좌표
 nx, ny = "60", "127"

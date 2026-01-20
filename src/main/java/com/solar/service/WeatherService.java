@@ -41,7 +41,7 @@ public class WeatherService {
     // 병렬 처리를 위한 스레드 풀 (API 호출이 많으므로 넉넉하게 설정)
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
-    private final String API_KEY = "eaab499069c4dc1e503f0de460f8fd9add7a1dc08fd28a6b6a2074bd0d2e3162"; // 공공데이터포털에서 발급받은 서비스키
+    private final String API_KEY = "your_key"; // 공공데이터포털에서 발급받은 서비스키
 
     // API URL 목록
     private final String URL_VILAGE = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";     // 동네예보조회

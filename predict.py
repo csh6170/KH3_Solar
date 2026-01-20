@@ -85,7 +85,7 @@ def calculate_theoretical_radiation(lat, lon, date, hour, cloud_cover_score):
 # ---------------------------------------------------------
 # 3. 기상청 API
 # ---------------------------------------------------------
-SERVICE_KEY = "860d22d5afed47ba3bd53eb2e86fb3f152fa17a30ec99d05c043412e5e2d8d05"
+SERVICE_KEY = "your_key"
 
 def map_to_grid(lat, lon):
     RE = 6371.00877
@@ -596,8 +596,7 @@ if __name__ == '__main__':
             from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
         except ImportError: sys.exit(1)
         
-        TOKEN = '8485655386:AAEIaVJ64fdxOW-JeSAcoKijoZ-tWd7EcKg'
-        #TOKEN = '7958973119:AAHMFjSkoqXfqBBm3mFvVXcPDq-kzG0ta8A'
+        TOKEN = 'your_token'
 
         async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("반갑습니다! 태양광 발전 예측 봇입니다.\n\n[사용법]\n/how [지역명] [용량]\n예: /how 진해 3\n예: /how 분당 3")
