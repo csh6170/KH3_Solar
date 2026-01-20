@@ -22,7 +22,7 @@
 ### 1. ⚡ AI 태양광 발전 예측 (Solar Energy Prediction)
 사용자가 지역과 설비 용량(kW)을 입력하면, 천문학적 수식과 AI가 결합된 알고리즘이 내일의 발전량을 예측합니다.
 * **Scientific Logic**: 태양의 적위, 고도각, 시간각을 정밀 계산하여 이론적 일사량을 산출합니다.
-* **Business Insight**: 예상 발전량(kWh)뿐만 아니라 **예상 수익(원)** 과 **탄소 저감량(CO2)** 을 계산하여 경제적 가치를 시각화합니다.
+* **Business Insight**: 예상 발전량(kWh)뿐만 아니라 **예상 절약 금액(원)** 과 **탄소 저감량(CO2)** 을 계산하여 경제적 가치를 시각화합니다.
 * **Dual Access**: 웹 대시보드뿐만 아니라 **텔레그램 봇**을 통해서도 명령어(`/how [지역] [용량]`)로 간편하게 조회 가능합니다.
 
 ### 2. 👗 AI 라이프스타일 매니저 (Lifestyle Curation)
@@ -91,7 +91,7 @@ graph TD
 
 | 메인 대시보드 (Day/Night) | 태양광 발전 예측 결과 |
 | :---: | :---: |
-| ![메인화면](./images/main_dashboard.png) <br> *실시간 날씨, AI DJ, 태양 이동 경로* | <img src="./images/solar_test.png" width="49%" alt="입력화면"> <img src="./images/solar_result.png" width="49%" alt="결과화면"> <br> *좌: 지역별 기상 예보 확인 / 우: 발전량 및 수익 예측 결과* |
+| ![메인화면](./images/main_dashboard.png) <br> *실시간 날씨, AI DJ, 태양 이동 경로* | <img src="./images/solar_test.png" width="49%" alt="입력화면"> <img src="./images/solar_result.png" width="49%" alt="결과화면"> <br> *좌: 태양광 발전 정보(지역, 용량) 입력 / 우: 발전량 및 절약 금액 예측 결과* |
 
 | 옷차림 & AI 브리핑 | 재난 안전 상황실 |
 | :---: | :---: |
@@ -126,6 +126,8 @@ graph TD
 
 ### Data Source
 * **기상청 공공데이터포털**: 단기/초단기 예보, 생활기상지수, 지진/태풍 정보, 미세먼지 등
+* **한국동서발전 공공데이터포털**: 시간별 태양광 발전 데이터 (2022년 4월 1일 ~ 2025년 6월 30일)
+* **기상자료개발포탈**: 2022년 4월 1일 ~ 2025년 6월 30일까지 태양광 발전소의 해당 지역 날씨 데이터 (기온, 습도, 풍속 등)
 * **Sunrise-Sunset API**: 일출/일몰 시간 정밀 계산
 * **YouTube**: 날씨별 음악 추천 연동
 
@@ -158,8 +160,8 @@ graph TD
 
 ## 👨‍💻 개발 팀 (Team)
 
-| 팀원 | 담당 역할 및 기여 (Role & Contribution) |
-| :---: | :--- |
+| 팀   원 | 담당 역할 및 기여 (Role & Contribution) |
+| :-----: | :----- |
 | **최성호** | **☀️ Solar AI Engine & Bot Developer**<br>• **Solar Logic:** 태양의 위치(고도각/시간각) 기반 이론적 일사량 산출 알고리즘 및 경제성 분석 구현<br>• **Process Orchestration:** Spring Boot 내 Python 프로세스 생명주기 관리 및 자동 실행 구현(`TelegramBotRunner`) <br>• **Telegram Bot:** Python 봇(`predict.py`) 개발 및 실시간 발전량 알림 서비스 구현<br>• **View Integration:** 태양광 발전 예측 결과 화면(`result.html`) 및 봇 연동 UI 개발 |
 | **조보근** | **🏗️ Core Backend & Lifestyle Service**<br>• **Architecture:** Spring Boot 메인 구조 설계 및 비동기 API 병렬 처리(`CompletableFuture`) 구현<br>• **Weather & Disaster:** 기상청 API 연동, 지진/태풍 거리 계산 로직 및 옷차림/DJ/체감온도 서비스 개발<br>• **Frontend:** 메인 대시보드(`weather.html`), 재난 상황판(`earthquake.html`) 등 주요 웹 뷰 구현 |
 
