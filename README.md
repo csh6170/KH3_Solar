@@ -11,9 +11,9 @@
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.0-blueviolet?logo=tailwindcss)
 
 ## 📖 프로젝트 소개 (Overview)
-이 프로젝트는 **최신 Spring Boot 4.0**을 기반으로 **Python AI 서버**와 유기적으로 연동되는 하이브리드 웹 애플리케이션입니다.
+이 프로젝트는 **최신 Spring Boot 4.0**을 기반으로 **Python AI 서버** 와 유기적으로 연동되는 하이브리드 웹 애플리케이션입니다.
 
-기상청의 방대한 공공데이터를 병렬 처리하여 실시간으로 분석하고, 자체 구축한 **머신러닝 모델(Scikit-learn)**을 통해 **'체감온도', '옷차림 추천', '태양광 발전량 예측'** 등 사용자에게 실질적인 가치를 주는 정보를 제공합니다. 특히 **Java가 Python 프로세스의 생명주기를 직접 관리**하는 독창적인 아키텍처를 채택하여 배포 및 운영의 편의성을 극대화했습니다.
+기상청의 방대한 공공데이터를 병렬 처리하여 실시간으로 분석하고, 자체 구축한 **머신러닝 모델(Scikit-learn)** 을 통해 **'체감온도', '옷차림 추천', '태양광 발전량 예측'** 등 사용자에게 실질적인 가치를 주는 정보를 제공합니다. 특히 **Java가 Python 프로세스의 생명주기를 직접 관리**하는 독창적인 아키텍처를 채택하여 배포 및 운영의 편의성을 극대화했습니다.
 
 ---
 
@@ -22,7 +22,7 @@
 ### 1. ⚡ AI 태양광 발전 예측 (Solar Energy Prediction)
 사용자가 지역과 설비 용량(kW)을 입력하면, 천문학적 수식과 AI가 결합된 알고리즘이 내일의 발전량을 예측합니다.
 * **Scientific Logic**: 태양의 적위, 고도각, 시간각을 정밀 계산하여 이론적 일사량을 산출합니다.
-* **Business Insight**: 예상 발전량(kWh)뿐만 아니라 **예상 수익(원)**과 **탄소 저감량(CO2)**을 계산하여 경제적 가치를 시각화합니다.
+* **Business Insight**: 예상 발전량(kWh)뿐만 아니라 **예상 수익(원)** 과 **탄소 저감량(CO2)** 을 계산하여 경제적 가치를 시각화합니다.
 * **Dual Access**: 웹 대시보드뿐만 아니라 **텔레그램 봇**을 통해서도 명령어(`/how [지역] [용량]`)로 간편하게 조회 가능합니다.
 
 ### 2. 👗 AI 라이프스타일 매니저 (Lifestyle Curation)
@@ -43,7 +43,7 @@
 
 ## 🏛️ 시스템 아키텍처 (System Architecture)
 
-이 프로젝트는 **Java(Main Server)**가 **Python(AI Engine)**을 서브 프로세스로 거느리는 구조입니다.
+이 프로젝트는 **Java(Main Server)** 가 **Python(AI Engine)** 을 서브 프로세스로 거느리는 구조입니다.
 
 ```mermaid
 graph TD
@@ -91,11 +91,11 @@ graph TD
 
 | 메인 대시보드 (Day/Night) | 태양광 발전 예측 결과 |
 | :---: | :---: |
-| ![메인화면](./images/main_dashboard.png) <br> *실시간 날씨, AI DJ, 태양 이동 경로* | <img src="./images/solar_test.png" width="50%" alt="입력화면"> <img src="./images/solar_result.png" width="50%" alt="결과화면"> <br> *좌: 지역별 기상 예보 확인 / 우: 발전량 및 수익 예측 결과* |
+| ![메인화면](./images/main_dashboard.png) <br> *실시간 날씨, AI DJ, 태양 이동 경로* | <img src="./images/solar_test.png" width="49%" alt="입력화면"> <img src="./images/solar_result.png" width="49%" alt="결과화면"> <br> *좌: 지역별 기상 예보 확인 / 우: 발전량 및 수익 예측 결과* |
 
 | 옷차림 & AI 브리핑 | 재난 안전 상황실 |
 | :---: | :---: |
-| ![옷차림](./images/ai_lifestyle.png) <br> *Decision Tree 기반 옷차림 추천* | <img src="./images/earthquake.png" width="50%" alt="지진"> <img src="./images/typhoon.png" width="50%" alt="태풍"> <br> *좌: 지진 대피 경로 / 우: 태풍 영향권 분석* |
+| ![옷차림](./images/ai_lifestyle.png) <br> *Decision Tree 기반 옷차림 추천* | <img src="./images/earthquake.png" width="49%" alt="지진"> <img src="./images/typhoon.png" width="49%" alt="태풍"> <br> *좌: 지진 대피 경로 / 우: 태풍 영향권 분석* |
 
 ---
 
