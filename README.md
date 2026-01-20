@@ -135,8 +135,8 @@ graph TD
 
 1.  **프로젝트 클론**
     ```bash
-    git clone [https://github.com/your-username/solar-weather-assistant.git](https://github.com/your-username/solar-weather-assistant.git)
-    cd solar-weather-assistant
+    git clone https://github.com/csh6170/KH3_Solar.git
+    cd KH3_Solar
     ```
 
 2.  **환경 설정**
@@ -160,8 +160,8 @@ graph TD
 
 | 팀원 | 담당 역할 및 기여 (Role & Contribution) |
 | :---: | :--- |
-| **[본인 이름]** | **☀️ Solar AI Engine & Bot Developer**<br>• **Solar Logic:** 태양의 위치(고도각/시간각) 기반 이론적 일사량 산출 알고리즘 및 경제성 분석 구현<br>• **Telegram Bot:** Python 봇(`predict.py`) 개발 및 실시간 발전량 알림 서비스 구현<br>• **View Integration:** 태양광 발전 예측 결과 화면(`result.html`) 및 봇 연동 UI 개발 |
-| **[팀원 이름]** | **🏗️ Core Backend & Lifestyle Service**<br>• **Architecture:** Spring Boot 메인 구조 설계, 프로세스 관리(`TelegramBotRunner`) 및 비동기 API 처리 구현<br>• **Weather & Disaster:** 기상청 API 연동, 지진/태풍 거리 계산 로직 및 옷차림/DJ/체감온도 서비스 개발<br>• **Frontend:** 메인 대시보드(`weather.html`), 재난 상황판(`earthquake.html`) 등 주요 웹 뷰 구현 |
+| **[본인 이름]** | **☀️ Solar AI Engine & Bot Developer**<br>• **Solar Logic:** 태양의 위치(고도각/시간각) 기반 이론적 일사량 산출 알고리즘 및 경제성 분석 구현<br>• **Process Orchestration:** Spring Boot 내 Python 프로세스 생명주기 관리 및 자동 실행 구현(`TelegramBotRunner`) <br>• **Telegram Bot:** Python 봇(`predict.py`) 개발 및 실시간 발전량 알림 서비스 구현<br>• **View Integration:** 태양광 발전 예측 결과 화면(`result.html`) 및 봇 연동 UI 개발 |
+| **[팀원 이름]** | **🏗️ Core Backend & Lifestyle Service**<br>• **Architecture:** Spring Boot 메인 구조 설계 및 비동기 API 병렬 처리(`CompletableFuture`) 구현<br>• **Weather & Disaster:** 기상청 API 연동, 지진/태풍 거리 계산 로직 및 옷차림/DJ/체감온도 서비스 개발<br>• **Frontend:** 메인 대시보드(`weather.html`), 재난 상황판(`earthquake.html`) 등 주요 웹 뷰 구현 |
 
 ---
 
