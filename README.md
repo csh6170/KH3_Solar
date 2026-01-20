@@ -91,7 +91,7 @@ graph TD
 
 | 메인 대시보드 (Day/Night) | 태양광 발전 예측 결과 |
 | :---: | :---: |
-| ![메인화면](./images/main_dashboard.png) <br> *실시간 날씨, AI DJ, 태양 이동 경로* | <img src="./images/solar_test.png" width="49%" alt="입력화면"> <img src="./images/solar_result.png" width="49%" alt="결과화면"> <br> *좌: 지역별 기상 예보 확인 / 우: 발전량 및 수익 예측 결과* |
+| ![메인화면](./images/main_dashboard.png) <br> *실시간 날씨, AI DJ, 태양 이동 경로* | <img src="./images/solar_test.png" width="49%" alt="입력화면"> <img src="./images/solar_result.png" width="49%" alt="결과화면"> <br> *좌: 태양광 발전 정보(지역, 용량) 입력 / 우: 발전량 및 수익 예측 결과* |
 
 | 옷차림 & AI 브리핑 | 재난 안전 상황실 |
 | :---: | :---: |
