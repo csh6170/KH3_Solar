@@ -106,8 +106,8 @@ graph TD
 | --- | --- | --- |
 | **Language** | Java 25 | 최신 Java 기능 활용 |
 | **Framework** | Spring Boot 4.0.0 | 차세대 스프링 프레임워크 적용 |
-| **Database** | Oracle, H2 | 메인 DB 및 테스트용 In-memory DB |
-| **Persistence** | JPA, QueryDSL, MyBatis | 복잡한 쿼리와 생산성을 고려한 하이브리드 ORM 전략 |
+| **Database** | CSV / Text Files | DB 없이 파일 시스템을 이용한 데이터 관리 |
+| **File Processing** | Java I/O, Stream API | CSV 파싱 및 데이터 입출력 처리 |
 | **Async & Web** | Spring WebFlux, CompletableFuture | Non-blocking API 호출 및 병렬 처리 |
 
 ### AI & Data Science (Python)
@@ -115,7 +115,7 @@ graph TD
 | --- | --- | --- |
 | **Server** | FastAPI | 경량화된 고성능 AI 모델 서빙 (`ai_server.py`) |
 | **Machine Learning** | Scikit-learn | Decision Tree (옷차림), Linear Regression (체감온도) |
-| **Data Processing** | Pandas, NumPy | 데이터 전처리 및 분석 |
+| **Data Processing** | Pandas, NumPy | CSV 데이터 전처리 및 분석 |
 | **Bot** | Python-Telegram-Bot | 실시간 알림 서비스 (`predict.py`) |
 
 ### Frontend
